@@ -34,7 +34,8 @@
   .header-center{text-align:center;flex:1;min-width:120px;}
   .price-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--cyan);}
   .price-change{font-size:12px;margin-top:2px;font-weight:500;}
-  .header-right{display:flex;align-items:center;gap:10px;flex-shrink:1;flex-wrap:wrap;}
+  .header-right{display:flex;align-items:center;gap:6px;flex-shrink:1;flex-wrap:wrap;}
+  .header-badges{display:flex;align-items:center;gap:4px;flex-shrink:1;}
   .refresh-btn{background:linear-gradient(135deg,rgba(247,147,26,.15),rgba(255,109,0,.1));
     border:1px solid rgba(247,147,26,.3);color:var(--btc);padding:8px 16px;border-radius:8px;
     font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;
@@ -253,17 +254,13 @@
     font-family:'Sora',sans-serif;font-size:13px;font-weight:600;transition:all .2s;}
   .retry-btn:hover{background:rgba(247,147,26,.2);}
 
-  /* API STATUS */
-  .api-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;
-    font-size:10px;font-weight:600;border:1px solid;}
+  /* API STATUS — base colors (layout defined in responsive section below) */
   .api-badge.ok{background:rgba(5,229,122,.08);color:var(--green);border-color:rgba(5,229,122,.25);}
   .api-badge.warn{background:rgba(255,195,0,.08);color:var(--yellow);border-color:rgba(255,195,0,.25);}
-  /* MARKET STATUS BADGE */
-  .market-status{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;
-    font-size:10px;font-weight:600;border:1px solid;margin-left:6px;white-space:nowrap;}
+  /* MARKET STATUS BADGE — base colors (layout defined in responsive section below) */
   .market-status.open{background:rgba(5,229,122,.1);color:var(--green);border-color:rgba(5,229,122,.3);}
   .market-status.closed{background:rgba(255,45,85,.1);color:var(--red);border-color:rgba(255,45,85,.3);}
-  .market-status .ms-dot{width:6px;height:6px;border-radius:50%;}
+  .market-status .ms-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
   .market-status.open .ms-dot{background:var(--green);animation:pulse-dot 1.5s ease-in-out infinite;}
   .market-status.closed .ms-dot{background:var(--red);}
   @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
@@ -308,10 +305,15 @@
   /* Bottom padding for floating buttons */
   .main{padding-bottom:100px;}
 
-  /* Market status & API badge truncation */
-  .market-status{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .market-status-detail{font-weight:400;opacity:.7;margin-left:3px;}
-  .api-badge{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Market status & API badge — compact design */
+  .market-status{max-width:220px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+    border-radius:12px;font-size:10px;font-weight:600;border:1px solid;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;margin-left:4px;}
+  .market-status-detail{font-weight:400;opacity:.65;margin-left:2px;font-size:9px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px;}
+  .api-badge{max-width:160px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+    border-radius:12px;font-size:10px;font-weight:600;border:1px solid;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* Depth grid class (replaces inline grid) */
   .depth-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:11px;}
@@ -344,9 +346,10 @@
     .refresh-btn{padding:6px 12px;font-size:12px;}
     .countdown-wrap{font-size:9px;}
 
-    /* Market status truncate on mobile */
-    .market-status{max-width:130px;font-size:9px;padding:2px 7px;}
-    .api-badge{max-width:100px;font-size:9px;padding:2px 7px;}
+    /* Market status & API badge compact on mobile */
+    .market-status{max-width:110px;font-size:9px;padding:2px 6px;gap:3px;}
+    .market-status-detail{max-width:50px;font-size:8px;}
+    .api-badge{max-width:85px;font-size:9px;padding:2px 6px;}
 
     /* Master score font */
     .ms-score{font-size:36px;}
@@ -445,8 +448,9 @@
     .tf-prob{font-size:13px;}
     .header-right{gap:4px;}
     .refresh-btn{padding:5px 10px;font-size:11px;}
-    .market-status{max-width:100px;}
-    .api-badge{max-width:80px;}
+    .market-status{max-width:90px;font-size:8px;padding:2px 5px;}
+    .market-status-detail{max-width:35px;font-size:7px;}
+    .api-badge{max-width:70px;font-size:8px;padding:2px 5px;}
 
     /* Squeeze tpsl grid */
     .tpsl-grid{grid-template-columns:1fr 1fr;}
@@ -875,10 +879,12 @@
         </svg>
         <div class="cnum" id="countdownNum">3m</div>
       </div>
-      <span>next refresh</span>
+      <span>next</span>
     </div>
-    <div id="apiStatus"></div>
-    <div id="marketStatus"></div>
+    <div class="header-badges">
+      <div id="apiStatus"></div>
+      <div id="marketStatus"></div>
+    </div>
     <button class="refresh-btn" id="refreshBtn" onclick="runAnalysis()">
       <span id="refreshIcon">↻</span> Refresh
     </button>
@@ -5907,7 +5913,9 @@ function updateHeaderForAsset() {
   const logoIcon = document.querySelector('.logo-icon');
   if(logoIcon) logoIcon.textContent = iconMap[currentAsset.type] || '₿';
   const logoText = document.querySelector('.logo-text');
-  if(logoText) logoText.textContent = currentAsset.displayName + ' Analyst Pro';
+  // Short name for header (avoid long "EUR/USD Analyst Pro" taking too much space)
+  const shortName = currentAsset.symbol.replace('/USDT','').replace('/USD','');
+  if(logoText) logoText.textContent = shortName + ' Analyst';
   // Clear stale price display immediately
   const headerPrice = $id('headerPrice');
   if(headerPrice) headerPrice.textContent = '—';
@@ -5933,49 +5941,49 @@ function getMarketStatus() {
 
   if(currentAsset.type === 'crypto') {
     // Crypto markets are 24/7
-    return { isOpen: true, label: 'Market Open', detail: '24/7', nextEvent: null };
+    return { isOpen: true, label: 'Market Open', detail: '', nextEvent: null };
   }
 
   if(currentAsset.type === 'forex') {
     // Forex market: Sunday 22:00 UTC → Friday 22:00 UTC
     // Saturday = closed all day
     if(utcDay === 6) { // Saturday
-      const hrsToOpen = 24 - utcHour + 22; // hours until Sunday 22:00
-      return { isOpen: false, label: 'Market Closed', detail: `Opens ${formatHoursAway(hrsToOpen)}`, nextEvent: 'Sun 22:00 UTC' };
+      const hrsToOpen = 24 - utcHour + 22;
+      return { isOpen: false, label: 'Closed', detail: formatHoursAway(hrsToOpen), nextEvent: 'Sun 22:00 UTC' };
     }
     if(utcDay === 0 && utcTime < 22 * 60) { // Sunday before 22:00
-      const hrsToOpen = 22 * 60 - utcTime; // minutes
-      return { isOpen: false, label: 'Market Closed', detail: `Opens ${formatMinsAway(hrsToOpen)}`, nextEvent: 'Sun 22:00 UTC' };
+      const hrsToOpen = 22 * 60 - utcTime;
+      return { isOpen: false, label: 'Closed', detail: formatMinsAway(hrsToOpen), nextEvent: 'Sun 22:00 UTC' };
     }
     if(utcDay === 5 && utcTime >= 22 * 60) { // Friday after 22:00
-      const hrsToOpen = 24 - utcHour + 48 + 22; // hours until Sunday 22:00
-      return { isOpen: false, label: 'Market Closed', detail: `Opens ${formatHoursAway(hrsToOpen)}`, nextEvent: 'Sun 22:00 UTC' };
+      const hrsToOpen = 24 - utcHour + 48 + 22;
+      return { isOpen: false, label: 'Closed', detail: formatHoursAway(hrsToOpen), nextEvent: 'Sun 22:00 UTC' };
     }
     // Otherwise open
-    return { isOpen: true, label: 'Market Open', detail: 'Forex Session Active', nextEvent: 'Closes Fri 22:00 UTC' };
+    return { isOpen: true, label: 'Open', detail: '', nextEvent: 'Closes Fri 22:00 UTC' };
   }
 
   if(currentAsset.type === 'gold') {
     // Gold/XAU market: Sunday 23:00 UTC → Friday 22:00 UTC
     // Daily break: 22:00-23:00 UTC (Mon-Thu nights)
     if(utcDay === 6) { // Saturday
-      const hrsToOpen = 24 - utcHour + 23; // hours until Sunday 23:00
-      return { isOpen: false, label: 'Market Closed', detail: `Opens ${formatHoursAway(hrsToOpen)}`, nextEvent: 'Sun 23:00 UTC' };
+      const hrsToOpen = 24 - utcHour + 23;
+      return { isOpen: false, label: 'Closed', detail: formatHoursAway(hrsToOpen), nextEvent: 'Sun 23:00 UTC' };
     }
     if(utcDay === 0 && utcTime < 23 * 60) { // Sunday before 23:00
       const minsToOpen = 23 * 60 - utcTime;
-      return { isOpen: false, label: 'Market Closed', detail: `Opens ${formatMinsAway(minsToOpen)}`, nextEvent: 'Sun 23:00 UTC' };
+      return { isOpen: false, label: 'Closed', detail: formatMinsAway(minsToOpen), nextEvent: 'Sun 23:00 UTC' };
     }
     if(utcDay === 5 && utcTime >= 22 * 60) { // Friday after 22:00
-      const hrsToOpen = 24 - utcHour + 48 + 23; // hours until Sunday 23:00
-      return { isOpen: false, label: 'Market Closed', detail: `Opens ${formatHoursAway(hrsToOpen)}`, nextEvent: 'Sun 23:00 UTC' };
+      const hrsToOpen = 24 - utcHour + 48 + 23;
+      return { isOpen: false, label: 'Closed', detail: formatHoursAway(hrsToOpen), nextEvent: 'Sun 23:00 UTC' };
     }
     // Daily break check: 22:00-23:00 UTC (Mon-Fri early morning)
     if(utcTime >= 22 * 60 && utcTime < 23 * 60) {
       const minsToOpen = 23 * 60 - utcTime;
-      return { isOpen: false, label: 'Market Break', detail: `Resumes ${formatMinsAway(minsToOpen)}`, nextEvent: '23:00 UTC' };
+      return { isOpen: false, label: 'Break', detail: formatMinsAway(minsToOpen), nextEvent: '23:00 UTC' };
     }
-    return { isOpen: true, label: 'Market Open', detail: 'Gold Session Active', nextEvent: 'Daily break 22:00 UTC' };
+    return { isOpen: true, label: 'Open', detail: '', nextEvent: 'Daily break 22:00 UTC' };
   }
 
   return { isOpen: true, label: 'Market Open', detail: '', nextEvent: null };
@@ -6001,12 +6009,19 @@ function updateMarketStatus() {
   const el = $id('marketStatus');
   if(!el) return;
 
+  // Don't show market status for crypto (always open, badge is unnecessary)
+  if(currentAsset.type === 'crypto') {
+    el.innerHTML = '';
+    return;
+  }
+
   const stateClass = status.isOpen ? 'open' : 'closed';
   const dotHtml = `<span class="ms-dot"></span>`;
-  // Use title attribute for full detail, truncate visible text
+  // Short label for badge, full detail in title
+  const shortLabel = status.isOpen ? 'Open' : status.label === 'Market Break' ? 'Break' : 'Closed';
   const detailHtml = status.detail ? `<span class="market-status-detail" title="${status.detail}">${status.detail}</span>` : '';
 
-  el.innerHTML = `<span class="market-status ${stateClass}" title="${status.label}${status.detail ? ' — ' + status.detail : ''}">${dotHtml} ${status.label}${detailHtml}</span>`;
+  el.innerHTML = `<span class="market-status ${stateClass}" title="${status.label}${status.detail ? ' — ' + status.detail : ''}">${dotHtml} ${shortLabel}${detailHtml}</span>`;
 
   // Auto-update market status every 30 seconds (to catch market open/close transitions)
   if(_marketStatusInterval) clearInterval(_marketStatusInterval);
@@ -6161,17 +6176,16 @@ async function runAnalysis() {
     const chCol = change24>=0?'var(--green)':'var(--red)';
     const chArrow = change24>=0?'▲':'▼';
 
-    // Update API status badge — show key health for Twelve Data
+    // Update API status badge — compact format for header
     const usableKeys = _tdUsableKeyCount();
     const totalKeys = TD_API_KEYS.length;
     let srcLabel, srcClass;
     if(tickerResult.source==='binance') {
-      srcLabel = '● Binance'; srcClass = 'ok';
+      srcLabel = 'Binance'; srcClass = 'ok';
     } else if(tickerResult.source==='twelvedata' || tickerResult.source==='twelvedata-price') {
-      srcLabel = `● Twelve Data (${usableKeys}/${totalKeys} keys)`;
-      srcClass = usableKeys >= 3 ? 'ok' : usableKeys >= 1 ? 'warn' : 'warn';
+      srcLabel = `12Data ${usableKeys}/${totalKeys}`; srcClass = usableKeys >= 3 ? 'ok' : usableKeys >= 1 ? 'warn' : 'warn';
     } else {
-      srcLabel = '● CoinGecko'; srcClass = 'warn';
+      srcLabel = 'CoinGecko'; srcClass = 'warn';
     }
     setHTML('apiStatus',`<span class="api-badge ${srcClass}">${srcLabel}</span>`);
 
@@ -6186,8 +6200,10 @@ async function runAnalysis() {
     // Show market closed notice for forex/gold if market is closed
     const mktStatus = getMarketStatus();
     if(!mktStatus.isOpen && currentAsset.type !== 'crypto') {
+      const fullLabel = mktStatus.label === 'Closed' ? 'Market Closed' : mktStatus.label === 'Break' ? 'Market Break' : mktStatus.label;
+      const fullDetail = mktStatus.detail ? `Opens in ${mktStatus.detail}.` : '';
       setHTML('fallbackWarning', `<div style="padding:8px 12px;background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.25);border-radius:8px;margin:8px 0;font-size:11px;color:#ff2d55">
-        🔴 <b>${mktStatus.label}</b> — ${mktStatus.detail}. Last available data দেখাচ্ছে। নতুন candle market open হলে আসবে।
+        🔴 <b>${fullLabel}</b> — ${fullDetail} Last available data দেখাচ্ছে। নতুন candle market open হলে আসবে।
       </div>`);
     } else {
       setHTML('fallbackWarning', '');
