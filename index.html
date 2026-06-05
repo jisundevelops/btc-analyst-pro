@@ -533,6 +533,8 @@
 </div>
 <!-- MAIN -->
 <div class="main" id="mainContent" style="display:none">
+  <!-- Fallback data warning (shown when API fails and synthetic data is used) -->
+  <div id="fallbackWarning"></div>
   <div>
     <div class="section-label">
       <div class="live-dot"></div>
@@ -630,7 +632,7 @@ const TIMEFRAMES = [
 ];
 const REFRESH_SEC = 180;
 
-let analysisData = {}, currentPrice = 0, masterScore = 50;
+let currentPrice = 0, masterScore = 50;
 let refreshTimer = null, countdownTimer = null, countdownSec = REFRESH_SEC;
 
 const ASSETS = {
@@ -741,9 +743,6 @@ async function _tdWaitForRateLimit() {
   }
   return Promise.resolve();
 }
-
-// Legacy alias for compatibility
-const TWELVE_API_KEY = TD_API_KEYS[0];
 
 const TD_INTERVAL_MAP = {'5m':'5min','15m':'15min','1h':'1h','4h':'4h','1d':'1day','1w':'1week'};
 const CG_COIN_MAP = {'BTCUSDT':'bitcoin','ETHUSDT':'ethereum','BNBUSDT':'binancecoin','SOLUSDT':'solana'};
@@ -975,12 +974,6 @@ async function fetchBTCDominance() {
   return null;
 }
 
-// NOTE: Claude API requires server-side x-api-key header which cannot be safely
-// embedded in client-side code. News data is generated locally instead.
-async function fetchClaudeNews() {
-  return null;
-}
-
 // ── Fear & Greed styling helpers ──────────────────────────────────
 function fgColor(val) {
   if(val<=25) return 'var(--red)';
@@ -1007,22 +1000,78 @@ function fgBorder(val) {
 // ── INDICATORS ──────────────────────────────────────────────────
 const sma  = (arr,n)=>arr.length<n?null:arr.slice(-n).reduce((a,b)=>a+b,0)/n;
 function ema(arr,n){if(arr.length<n)return null;const k=2/(n+1);let e=arr.slice(0,n).reduce((a,b)=>a+b,0)/n;for(let i=n;i<arr.length;i++)e=arr[i]*k+e*(1-k);return e;}
+// Wilder's RMA (Running Moving Average) — used by ATR, RSI, ADX
+function rma(arr,n){
+  if(arr.length<n) return null;
+  let val=arr.slice(0,n).reduce((a,b)=>a+b,0)/n;
+  for(let i=n;i<arr.length;i++) val=(val*(n-1)+arr[i])/n;
+  return val;
+}
 function rsi(arr,n=14){
     if(arr.length<n+1)return null;
     let gains=[],losses=[];
     for(let i=1;i<arr.length;i++){const d=arr[i]-arr[i-1];gains.push(d>0?d:0);losses.push(d<0?-d:0);}
     if(gains.length<n)return null;
-    let avgG=gains.slice(0,n).reduce((a,b)=>a+b,0)/n;
-    let avgL=losses.slice(0,n).reduce((a,b)=>a+b,0)/n;
-    for(let i=n;i<gains.length;i++){avgG=(avgG*(n-1)+gains[i])/n;avgL=(avgL*(n-1)+losses[i])/n;}
+    // Use RMA (Wilder's smoothing) for proper RSI calculation
+    const avgG=rma(gains,n);
+    const avgL=rma(losses,n);
+    if(avgG===null||avgL===null)return null;
     if(avgL===0)return 100;
     return 100-100/(1+avgG/avgL);
   }
 function bb(arr,n=20,m=2){if(arr.length<n)return null;const s=arr.slice(-n),mn=s.reduce((a,b)=>a+b,0)/n,std=Math.sqrt(s.reduce((a,b)=>a+Math.pow(b-mn,2),0)/n);return{upper:mn+m*std,middle:mn,lower:mn-m*std};}
-function atr(cs,n=14){if(cs.length<n+1)return null;const sl=cs.slice(-(n+1));const trs=sl.slice(1).map((c,i)=>Math.max(c.h-c.l,Math.abs(c.h-sl[i].c),Math.abs(c.l-sl[i].c)));return trs.reduce((a,b)=>a+b,0)/n;}
+// ATR using Wilder's RMA (correct method) — previous SMA version underestimated volatility
+function atr(cs,n=14){
+  if(cs.length<n+1)return null;
+  const trs=[];
+  for(let i=1;i<cs.length;i++){
+    trs.push(Math.max(cs[i].h-cs[i].l,Math.abs(cs[i].h-cs[i-1].c),Math.abs(cs[i].l-cs[i-1].c)));
+  }
+  const atrVal=rma(trs,n);
+  return atrVal;
+}
 function stoch(cs,k=14){if(cs.length<k)return null;const s=cs.slice(-k),hi=Math.max(...s.map(c=>c.h)),lo=Math.min(...s.map(c=>c.l));return hi===lo?50:((s[s.length-1].c-lo)/(hi-lo))*100;}
+// Stochastic %D = SMA of %K values (signal line for crossover signals)
+function stochD(cs,k=14,d=3){
+  if(cs.length<k+d-1) return null;
+  const kVals=[];
+  for(let i=k-1;i<cs.length;i++){
+    const s=cs.slice(i-k+1,i+1);
+    const hi=Math.max(...s.map(c=>c.h)),lo=Math.min(...s.map(c=>c.l));
+    kVals.push(hi===lo?50:((s[s.length-1].c-lo)/(hi-lo))*100);
+  }
+  return sma(kVals,d);
+}
 function vwap(cs){let cv=0,ctv=0;for(const c of cs){const tp=(c.h+c.l+c.c)/3;ctv+=tp*c.v;cv+=c.v;}return cv===0?cs[cs.length-1].c:ctv/cv;}
-function macd(arr){const e12=ema(arr,12),e26=ema(arr,26);if(!e12||!e26)return null;return{val:e12-e26,positive:e12>e26};}
+// Unified MACD engine — returns MACD line, signal line, and histogram
+// This is the single source of truth; detectMACDDivergence also uses this
+function macd(arr,returnSeries=false){
+  if(arr.length<26) return null;
+  const k12=2/(12+1),k26=2/(26+1),k9=2/(9+1);
+  let e12=arr.slice(0,12).reduce((a,b)=>a+b,0)/12;
+  for(let i=12;i<26;i++) e12=arr[i]*k12+e12*(1-k12);
+  let e26=arr.slice(0,26).reduce((a,b)=>a+b,0)/26;
+  const macdLine=[e12-e26];
+  for(let i=26;i<arr.length;i++){
+    e12=arr[i]*k12+e12*(1-k12);
+    e26=arr[i]*k26+e26*(1-k26);
+    macdLine.push(e12-e26);
+  }
+  // Signal line = EMA9 of MACD line
+  let sig=macdLine.slice(0,Math.min(9,macdLine.length)).reduce((a,b)=>a+b,0)/Math.min(9,macdLine.length);
+  const sigLine=[sig];
+  for(let i=9;i<macdLine.length;i++){
+    sig=macdLine[i]*k9+sig*(1-k9);
+    sigLine.push(sig);
+  }
+  const offset=macdLine.length-sigLine.length;
+  const histogram=sigLine.map((s,i)=>macdLine[offset+i]-s);
+  const lastMacd=macdLine[macdLine.length-1];
+  const lastSig=sigLine[sigLine.length-1];
+  const lastHist=histogram[histogram.length-1];
+  if(returnSeries) return {macdLine,sigLine,histogram};
+  return {val:lastMacd,signal:lastSig,hist:lastHist,positive:lastMacd>lastSig,histogram:histogram};
+}
 
 function analyzeTF(rawData, price) {
   const candles = rawData.map(k=>({h:+k[2],l:+k[3],c:+k[4],v:+k[5],o:+k[1]}));
@@ -1030,7 +1079,7 @@ function analyzeTF(rawData, price) {
 
   const ri=rsi(closes), s20=sma(closes,20), s50=sma(closes,50),
         e21=ema(closes,21), bband=bb(closes), mc=macd(closes),
-        av=atr(candles), st=stoch(candles),
+        av=atr(candles), stK=stoch(candles), stD=stochD(candles),
         vw=candles.slice(-20).some(c=>c.v>0)?vwap(candles.slice(-20)):null;
 
   let bull=0,bear=0,total=0;
@@ -1041,9 +1090,16 @@ function analyzeTF(rawData, price) {
   if(s50) add(price>s50);
   if(e21) add(price>e21);
   if(bband){total+=2;const bbRange=bband.upper-bband.lower;const pos=bbRange!==0?(price-bband.lower)/bbRange:0.5;pos<0.2?bull+=2:pos<0.4?bull+=1:pos>0.8?bear+=2:pos>0.6?bear+=1:null;}
-  if(st!=null) add(st<50);
+  if(stK!=null) add(stK<50);
+  // Stoch %K/%D crossover: bullish when %K crosses above %D, bearish when below
+  if(stK!=null && stD!=null){ add(stK>stD, 1); }
   if(vw && vw>0) add(price>vw);
   if(mc) add(mc.positive);
+  // MACD histogram momentum: rising histogram = bullish momentum
+  if(mc && mc.histogram && mc.histogram.length>=2){
+    const h=mc.histogram;
+    add(h[h.length-1]>h[h.length-2], 1);
+  }
   const l5=closes.slice(-5); add(l5[l5.length-1]>l5[0]);
 
   const bullPct=total>0?Math.round(bull/total*100):50;
@@ -1056,7 +1112,7 @@ function analyzeTF(rawData, price) {
   const sl2=signal==='bull'?price-atrV*1.0:signal==='bear'?price+atrV*1.0:price-atrV*0.5;
 
   return {rsi:ri?.toFixed(1),sma20:s20!=null?smartToFixed(s20):null,sma50:s50!=null?smartToFixed(s50):null,
-    ema21:e21!=null?smartToFixed(e21):null,bb:bband,atr:smartToFixed(atrV),stoch:st?.toFixed(1),
+    ema21:e21!=null?smartToFixed(e21):null,bb:bband,atr:smartToFixed(atrV),stoch:stK?.toFixed(1),stochD:stD?.toFixed(1),
     vwap:vw!=null?smartToFixed(vw):null,macd:mc,signal,bullPct,bearPct,prob,
     bullScore:bull,bearScore:bear,total,
     tp1:smartToFixed(tp1),tp2:smartToFixed(tp2),sl:smartToFixed(sl2)};
@@ -1074,7 +1130,10 @@ function priceDecimals() {
 }
 function smartToFixed(n) {
   const d = priceDecimals();
-  return Number(n).toFixed(d);
+  const num = Number(n);
+  // Return raw number string without locale — let fmtPrice handle formatting
+  if(!isFinite(num)) return '0.' + '0'.repeat(d);
+  return num.toFixed(d);
 }
 function currencyPrefix() {
   if(currentAsset.symbol.endsWith('/JPY')) return '\u00A5';
@@ -1084,10 +1143,12 @@ function currencyPrefix() {
 function fmtPrice(n) {
   const prefix = currencyPrefix();
   const decimals = priceDecimals();
+  const num = Number(String(n).replace(/,/g, '')); // strip any existing commas
+  if(!isFinite(num)) return prefix + '0.' + '0'.repeat(decimals);
   if(currentAsset.type === 'forex' || currentAsset.type === 'gold') {
-    return prefix + Number(n).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+    return prefix + num.toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
   }
-  return prefix + Number(n).toLocaleString(undefined, {maximumFractionDigits: 2});
+  return prefix + num.toLocaleString(undefined, {maximumFractionDigits: 2});
 }
 
 
@@ -1221,13 +1282,7 @@ function detectTrendlineBreak(candles) {
 
 function analyzeMarketStructure(candles) {
   try {
-    const recent = candles.slice(-20);
-    const closes = recent.map(c=>c.c);
-    let hh=0, hl=0, lh=0, ll=0;
-    for(let i=1;i<closes.length;i++){
-      if(closes[i]>closes[i-1]){ hh++; } else { lh++; }
-    }
-    // Simpler approach: check last 5 swing points for HH/HL or LH/LL pattern
+    // Use swing points for HH/HL/LH/LL structure detection
     const {swingHighs, swingLows} = findSwingPoints(candles, 50);
     let structure = '↔️ Ranging';
     let hhCount=0, hlCount=0, lhCount=0, llCount=0;
@@ -1507,33 +1562,15 @@ function detectRSIDivergence(candles, closes) {
 function detectMACDDivergence(candles, closes) {
   try {
     if(closes.length < 30) return {type:'none', description:'No MACD divergence'};
-    // Incremental EMA calculation — O(N) instead of O(N²)
-    const k12=2/(12+1), k26=2/(26+1), k9=2/(9+1);
-    // Warm up EMA12 from index 12 to 25
-    let e12=closes.slice(0,12).reduce((a,b)=>a+b,0)/12;
-    for(let i=12;i<26;i++) e12=closes[i]*k12+e12*(1-k12);
-    // Initialize EMA26
-    let e26=closes.slice(0,26).reduce((a,b)=>a+b,0)/26;
-    const macdVals = [e12-e26];
-    for(let i=26;i<closes.length;i++){
-      e12=closes[i]*k12+e12*(1-k12);
-      e26=closes[i]*k26+e26*(1-k26);
-      macdVals.push(e12-e26);
-    }
-    if(macdVals.length < 10) return {type:'none', description:'No MACD divergence'};
-    // Signal line = incremental EMA9 of MACD values
-    let sig=macdVals.slice(0,9).reduce((a,b)=>a+b,0)/9;
-    const sigVals = [sig];
-    for(let i=9;i<macdVals.length;i++){
-      sig=macdVals[i]*k9+sig*(1-k9);
-      sigVals.push(sig);
-    }
-    // Histogram
-    const offset = macdVals.length - sigVals.length;
-    const histogram = sigVals.map((s,i) => macdVals[offset+i] - s);
-    // Check for divergence using last 20 candles' prices and histogram
-    const recentCandles = candles.slice(-20);
-    const recentHist = histogram.slice(-20);
+    // Use the unified MACD engine (same as macd() function) — no duplication
+    const mc = macd(closes, true);
+    if(!mc || mc.histogram.length < 10) return {type:'none', description:'No MACD divergence'};
+    // Align candles and histogram: histogram starts at close index 33 (26 MACD seed + 9 signal seed)
+    // so take the same number of recent entries from both
+    const histLen = mc.histogram.length;
+    const takeN = Math.min(20, histLen);
+    const recentCandles = candles.slice(-takeN);
+    const recentHist = mc.histogram.slice(-takeN);
     // Find price highs with histogram
     let priceHighs = [], priceLows = [];
     for(let i=1;i<recentCandles.length-1;i++){
@@ -1632,32 +1669,36 @@ function calculateMasterScore(components) {
            trendlineScore, structureScore, fibScore, fearGreedScore, lsScore, obScore, isCrypto} = components;
 
     // 12-component weighted scoring system
-    // Base weights for all 12 components
     const baseW = [0.20, 0.15, 0.10, 0.10, 0.07, 0.07, 0.08, 0.08, 0.06, 0.04, 0.03, 0.02];
     const allScores = [indicatorScore, confluenceScore, patternScore, volumeScore, divergenceScore, srScore,
                        trendlineScore, structureScore, fibScore, fearGreedScore, lsScore, obScore];
     const allNames = ['Indicator Score','Multi-TF Confluence','Candlestick Pattern','Volume Score','Divergence Score','S/R Position',
                       'Trendline Break','Market Structure','Fibonacci Zone','Fear & Greed','Long/Short Ratio','Order Book'];
 
+    // NaN guard: replace any NaN/null/undefined score with 50 (neutral)
+    const safeScores = allScores.map(s => (typeof s==='number' && isFinite(s)) ? s : 50);
+
     // For non-crypto assets, redistribute crypto-only weights (indices 9,10,11) proportionally
     let w = [...baseW];
     if(!isCrypto){
-      const cryptoWeight = w[9] + w[10] + w[11]; // 0.04 + 0.03 + 0.02 = 0.09
+      const cryptoWeight = w[9] + w[10] + w[11];
       w[9] = 0; w[10] = 0; w[11] = 0;
-      const remainingTotal = w.slice(0,9).reduce((a,b)=>a+b, 0); // sum of first 9
+      const remainingTotal = w.slice(0,9).reduce((a,b)=>a+b, 0);
       if(remainingTotal > 0){
-        const scale = (remainingTotal + cryptoWeight) / remainingTotal; // scale up to fill the gap
+        const scale = (remainingTotal + cryptoWeight) / remainingTotal;
         for(let i=0; i<9; i++) w[i] *= scale;
       }
     }
 
     let total = 0;
     const breakdown = allNames.map((n,i)=>{
-      const weighted = +(allScores[i] * w[i]).toFixed(1);
+      const weighted = +(safeScores[i] * w[i]).toFixed(1);
       total += weighted;
-      return {name:n, score:Math.round(allScores[i]), weight:Math.round(w[i]*100), weighted};
+      return {name:n, score:Math.round(safeScores[i]), weight:Math.round(w[i]*100), weighted};
     });
     total = Math.round(total);
+    // Final NaN guard on total
+    if(!isFinite(total)) total = 50;
     total = Math.max(0, Math.min(100, total));
     let label='', color='';
     if(total>=80){ label='STRONG BUY 🚀'; color='var(--green)'; }
@@ -1681,7 +1722,7 @@ function renderMasterScore(masterData) {
     });
     html += '</tbody></table>';
   }
-  const totalIndicators = 9; // from analyzeTF
+  const totalIndicators = 11; // from analyzeTF (9 core + stochD + MACD hist momentum)
   const totalTFs = 6;
   const totalPatterns = 8; // patterns we check
   const totalComponents = masterData.breakdown.length;
@@ -1777,8 +1818,10 @@ function renderIndicators(bestTF, results, price) {
     {n:'SMA 50',v:r.sma50!=null?fmtPrice(r.sma50):'N/A',sig:r.sma50==null?'neutral':price>r.sma50?'bull':'bear',l:r.sma50==null?'N/A':price>r.sma50?'Above':'Below'},
     {n:'EMA 21',v:r.ema21!=null?fmtPrice(r.ema21):'N/A',sig:r.ema21==null?'neutral':price>r.ema21?'bull':'bear',l:r.ema21==null?'N/A':price>r.ema21?'Above':'Below'},
     {n:'VWAP',v:r.vwap!=null?fmtPrice(r.vwap):'N/A',sig:r.vwap==null?'neutral':price>r.vwap?'bull':'bear',l:r.vwap==null?'N/A':price>r.vwap?'Above VWAP':'Below VWAP'},
-    {n:'Stochastic',v:r.stoch!=null?r.stoch+'%':'N/A',sig:r.stoch==null?'neutral':+r.stoch<20?'bull':+r.stoch>80?'bear':'neutral',l:r.stoch==null?'N/A':+r.stoch<20?'Oversold':+r.stoch>80?'Overbought':'Neutral'},
-    {n:'MACD',v:r.macd?r.macd.val.toFixed(1):'N/A',sig:r.macd==null?'neutral':r.macd.positive?'bull':'bear',l:r.macd==null?'N/A':r.macd.positive?'Bullish':'Bearish'},
+    {n:'Stochastic %K',v:r.stoch!=null?r.stoch+'%':'N/A',sig:r.stoch==null?'neutral':+r.stoch<20?'bull':+r.stoch>80?'bear':'neutral',l:r.stoch==null?'N/A':+r.stoch<20?'Oversold':+r.stoch>80?'Overbought':'Neutral'},
+    {n:'Stoch %D (Signal)',v:r.stochD!=null?r.stochD+'%':'N/A',sig:(r.stoch!=null&&r.stochD!=null)?(+r.stoch>+r.stochD?'bull':'bear'):'neutral',l:(r.stoch!=null&&r.stochD!=null)?(+r.stoch>+r.stochD?'%K > %D (Bullish)':'%K < %D (Bearish)'):'N/A'},
+    {n:'MACD',v:r.macd?r.macd.val.toFixed(2):'N/A',sig:r.macd==null?'neutral':r.macd.positive?'bull':'bear',l:r.macd==null?'N/A':r.macd.positive?'Bullish':'Bearish'},
+    {n:'MACD Signal',v:r.macd&&r.macd.signal!=null?r.macd.signal.toFixed(2):'N/A',sig:'neutral',l:r.macd&&r.macd.signal!=null?`Hist: ${r.macd.hist?.toFixed(2)||'N/A'}`:'N/A'},
     {n:'Bollinger Band',v:r.bb?fmtPrice(smartToFixed(r.bb.middle)):'N/A',sig:r.bb&&price<r.bb.lower?'bull':r.bb&&price>r.bb.upper?'bear':'neutral',l:r.bb&&price<r.bb.lower?'Below Lower':r.bb&&price>r.bb.upper?'Above Upper':'Middle'},
     {n:'ATR (Volatility)',v:fmtPrice(r.atr),sig:'neutral',l:'Measuring'},
   ];
@@ -2124,18 +2167,26 @@ async function runAnalysis() {
     // Fetch klines — parallel for crypto, sequential with rate-limit awareness for forex/gold
     let klineResults;
     if(currentAsset.type === 'crypto') {
+      setHTML('fallbackWarning', ''); // clear any previous fallback warning
       klineResults = await Promise.all(TIMEFRAMES.map(tf=>fetchKlines(tf.interval,100)));
     } else {
       // For forex/gold: fetch sequentially, rate limiter handles delays automatically
       klineResults = [];
+      let hasFallbackData = false;
       for(const tf of TIMEFRAMES) {
         try {
           klineResults.push(await fetchKlines(tf.interval, 50));
         } catch(err) {
           console.warn(`[TwelveData] Kline fetch failed for ${tf.label}:`, err.message);
-          // Create fallback empty data so analysis doesn't crash
           klineResults.push({data: _generateFallbackKlines(currentPrice, tf.interval), source: 'fallback'});
+          hasFallbackData = true;
         }
+      }
+      // Show warning if any TF used fallback data
+      if(hasFallbackData) {
+        setHTML('fallbackWarning', '<div style="padding:8px 12px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:8px;margin:8px 0;font-size:11px;color:#f59e0b">⚠️ কিছু timeframe এর data API থেকে আসেনি — সেগুলোতে estimated data দেখাচ্ছে। Indicator values approximate হতে পারে।</div>');
+      } else {
+        setHTML('fallbackWarning', '');
       }
     }
 
@@ -2143,7 +2194,6 @@ async function runAnalysis() {
     setHTML('loaderText','Indicators calculate করছি<span class="dots"></span>');
     const results={};
     TIMEFRAMES.forEach((tf,i)=>{ results[tf.label]=analyzeTF(klineResults[i].data, currentPrice); });
-    analysisData=results;
 
     // Render synchronous UI
     const bestTF=renderTFCards(results);
@@ -2261,25 +2311,23 @@ async function runAnalysis() {
     // ── Fetch real sentiment data + news in parallel (non-blocking) ──
     const localSentiment = generateLocalSentiment(results, ticker);
 
-    const [fgResult, lsResult, domResult, claudeResult] = await Promise.allSettled([
+    const [fgResult, lsResult, domResult] = await Promise.allSettled([
       fetchFearGreed(),
       fetchLongShortRatio(),
       fetchBTCDominance(),
-      fetchClaudeNews(),
     ]);
 
     const fg = fgResult.status==='fulfilled' && fgResult.value ? fgResult.value : null;
     const ls = lsResult.status==='fulfilled' && lsResult.value!=null ? lsResult.value : null;
     const dom = domResult.status==='fulfilled' && domResult.value!=null ? domResult.value : null;
-    const claudeNews = claudeResult.status==='fulfilled' && claudeResult.value ? claudeResult.value : null;
 
     const fearGreedVal = fg ? fg.value : localSentiment.fearGreed;
     const fearGreedLabel = fg ? fg.label : (fg===null && localSentiment.fearGreed<=30?'Extreme Fear':localSentiment.fearGreed<=45?'Fear':localSentiment.fearGreed<=55?'Neutral':localSentiment.fearGreed<=75?'Greed':'Extreme Greed');
     const longShortVal = ls!=null ? ls : localSentiment.longShortRatio;
     const dominanceVal = dom!=null ? dom : localSentiment.dominance;
-    const overallSentiment = claudeNews?.overallSentiment || localSentiment.overallSentiment;
-    const sentimentScore = claudeNews?.sentimentScore || localSentiment.sentimentScore;
-    const newsItems = (claudeNews?.news && claudeNews.news.length>0) ? claudeNews.news : localSentiment.news;
+    const overallSentiment = localSentiment.overallSentiment;
+    const sentimentScore = localSentiment.sentimentScore;
+    const newsItems = localSentiment.news;
 
     const sentiment = {
       fearGreed: fearGreedVal,
@@ -2457,11 +2505,28 @@ async function runAnalysis() {
 }
 
 // ── ANIMATED DOTS (cross-browser) ────────────────────────────────
+// Use visibility-aware interval: pauses when tab is hidden to save CPU
 let _dotsCount=0;
-const _dotsInterval = setInterval(()=>{
+let _dotsInterval = null;
+function _dotsTick() {
   _dotsCount=(_dotsCount+1)%4;
-  document.querySelectorAll('.dots').forEach(el=>{el.textContent='.'.repeat(_dotsCount);});
-},400);
+  const els = document.querySelectorAll('.dots');
+  if(els.length === 0) return; // no active dots — skip DOM access
+  els.forEach(el=>{el.textContent='.'.repeat(_dotsCount);});
+}
+function _startDotsInterval() {
+  if(_dotsInterval) clearInterval(_dotsInterval);
+  _dotsInterval = setInterval(_dotsTick, 400);
+}
+_startDotsInterval();
+// Pause dots when tab hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) {
+    if(_dotsInterval) { clearInterval(_dotsInterval); _dotsInterval = null; }
+  } else {
+    _startDotsInterval();
+  }
+});
 
 // ── INIT ─────────────────────────────────────────────────────────
 renderAssetBar();
@@ -2707,6 +2772,14 @@ setTimeout(() => {
   hsRunScan();
   hsScanTimer = setInterval(hsRunScan, 180000);
 }, 8000);
+// Pause Hot Signals scanner when tab is hidden to save API quota
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) {
+    if(hsScanTimer) { clearInterval(hsScanTimer); hsScanTimer = null; }
+  } else {
+    if(!hsScanTimer) { hsRunScan(); hsScanTimer = setInterval(hsRunScan, 180000); }
+  }
+});
 
 // ══════════════════════════════════════════════════════════════════
 // ── HOT SESSIONS FLOATING PANEL ─────────────────────────────────
@@ -3155,6 +3228,14 @@ function sessTick() {
 
 sessTick(); // Initial
 sessClockTimer = setInterval(sessTick, 1000);
+// Pause session timer when tab is hidden to save CPU
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) {
+    if(sessClockTimer) { clearInterval(sessClockTimer); sessClockTimer = null; }
+  } else {
+    if(!sessClockTimer) { sessTick(); sessClockTimer = setInterval(sessTick, 1000); }
+  }
+});
 </script>
 
 <!-- HOT SESSIONS — BUTTON + CENTERED MODAL -->
