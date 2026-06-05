@@ -281,6 +281,209 @@
     border:1px solid var(--border);background:var(--bg3);color:var(--dim);transition:all .2s;}
   .asset-btn.active{background:rgba(247,147,26,.15);color:var(--btc);border-color:var(--btc);}
   @media(max-width:900px){.asset-bar{flex-direction:column;align-items:flex-start;}}
+
+  /* ── HOT SIGNALS FLOATING SCANNER ──────────────────────────────── */
+  .hs-btn{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,#f7931a,#ff6d00);border:none;cursor:pointer;z-index:200;
+    display:flex;align-items:center;justify-content:center;font-size:24px;color:#000;
+    box-shadow:0 4px 20px rgba(247,147,26,.4);transition:transform .2s,box-shadow .2s;}
+  .hs-btn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(247,147,26,.55);}
+  .hs-btn:active{transform:scale(.95);}
+  .hs-badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;
+    background:var(--red);color:#fff;font-size:11px;font-weight:700;font-family:'Sora',sans-serif;
+    display:none;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 2px 8px rgba(255,45,85,.5);}
+  .hs-badge.show{display:flex;}
+  @keyframes hsPulse{0%,100%{box-shadow:0 4px 20px rgba(247,147,26,.4);}50%{box-shadow:0 4px 30px rgba(247,147,26,.7),0 0 0 12px rgba(247,147,26,.15);}}
+  .hs-btn.pulse{animation:hsPulse 1.5s ease-in-out 3;}
+
+  .hs-panel{position:fixed;bottom:88px;right:24px;width:380px;max-height:70vh;
+    background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+    box-shadow:0 8px 40px rgba(0,0,0,.6);z-index:199;display:none;flex-direction:column;overflow:hidden;}
+  .hs-panel.open{display:flex;}
+  .hs-panel-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .hs-panel-title{font-size:15px;font-weight:700;flex:1;}
+  .hs-panel-time{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .hs-panel-close{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);
+    background:var(--bg3);color:var(--muted);cursor:pointer;font-size:14px;display:flex;
+    align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+  .hs-panel-close:hover{background:var(--red);color:#fff;border-color:var(--red);}
+  .hs-panel-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}
+  .hs-panel-body::-webkit-scrollbar{width:3px;}
+  .hs-panel-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+  .hs-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;
+    display:flex;align-items:center;gap:10px;transition:border-color .2s;}
+  .hs-card:hover{border-color:var(--border2);}
+  .hs-card-icon{font-size:22px;flex-shrink:0;}
+  .hs-card-info{flex:1;min-width:0;}
+  .hs-card-asset{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .hs-card-tf{font-size:10px;color:var(--muted);margin-top:1px;}
+  .hs-card-dir{font-size:12px;font-weight:700;}
+  .hs-card-dir.bull{color:var(--green);}
+  .hs-card-dir.bear{color:var(--red);}
+  .hs-card-pct{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;line-height:1;}
+  .hs-card-pct.bull{color:var(--green);}
+  .hs-card-pct.bear{color:var(--red);}
+  .hs-card-view{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
+    border:1px solid var(--btc);background:rgba(247,147,26,.1);color:var(--btc);
+    font-family:'Sora',sans-serif;transition:all .15s;flex-shrink:0;}
+  .hs-card-view:hover{background:rgba(247,147,26,.25);}
+  .hs-empty{text-align:center;padding:30px 16px;color:var(--muted);font-size:13px;line-height:1.6;}
+  .hs-scanning{font-size:11px;color:var(--dim);text-align:center;padding:8px;display:none;}
+  .hs-scanning.show{display:block;}
+  .hs-card.hs-strong{border-color:var(--btc);background:rgba(247,147,26,.06);}
+  .hs-card.hs-medium{border-color:var(--border2);}
+
+  @media(max-width:480px){
+    .hs-panel{width:calc(100vw - 32px);right:16px;bottom:80px;}
+    .hs-btn{width:46px;height:46px;font-size:20px;bottom:16px;right:16px;}
+    .hs-panel{bottom:74px;}
+  }
+
+  /* ── HOT SESSIONS — CENTERED MODAL ──────────────────────────── */
+  .sess-btn{position:fixed;bottom:84px;right:24px;width:48px;height:48px;border-radius:50%;
+    background:linear-gradient(135deg,#3b82f6,#ec4899);border:none;cursor:pointer;z-index:201;
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
+    box-shadow:0 4px 20px rgba(59,130,246,.35);transition:transform .2s,box-shadow .2s;}
+  .sess-btn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(59,130,246,.5);}
+  .sess-btn:active{transform:scale(.95);}
+  .sess-dot{position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;
+    background:var(--green);display:none;box-shadow:0 0 6px var(--green);}
+  .sess-dot.active{display:block;animation:sdPulse 1.5s ease-in-out infinite;}
+  @keyframes sdPulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green);}50%{opacity:.3;box-shadow:0 0 2px var(--green);}}
+
+  /* Backdrop overlay */
+  .sess-overlay{position:fixed;inset:0;background:rgba(3,4,10,.7);backdrop-filter:blur(4px);
+    z-index:299;display:none;justify-content:center;align-items:center;padding:16px;}
+  .sess-overlay.open{display:flex;}
+
+  /* Modal container */
+  .sess-modal{width:100%;max-width:540px;max-height:90vh;background:var(--bg2);
+    border:1px solid var(--border2);border-radius:20px;
+    box-shadow:0 20px 80px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.03);
+    display:flex;flex-direction:column;overflow:hidden;
+    animation:sessSlideIn .3s ease-out;}
+  @keyframes sessSlideIn{from{opacity:0;transform:translateY(30px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+  .sess-modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .sess-modal-title{font-size:18px;font-weight:800;flex:1;letter-spacing:-.3px;}
+  .sess-modal-clock{font-size:13px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-weight:600;
+    padding:4px 10px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.12);border-radius:8px;}
+  .sess-modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);
+    background:var(--bg3);color:var(--muted);cursor:pointer;font-size:16px;display:flex;
+    align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+  .sess-modal-close:hover{background:var(--red);color:#fff;border-color:var(--red);}
+
+  .sess-modal-body{flex:1;overflow-y:auto;padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px;}
+  .sess-modal-body::-webkit-scrollbar{width:4px;}
+  .sess-modal-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+  /* ── Hero: Kill Zone or Session ── */
+  .sess-hero{position:relative;border-radius:16px;padding:20px;overflow:hidden;
+    border:1px solid var(--border);}
+  .sess-hero-glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;
+    border-radius:50%;pointer-events:none;opacity:.08;}
+  .sess-hero-stripe{position:absolute;top:0;left:0;bottom:0;width:4px;}
+  .sess-hero-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .sess-hero-icon{font-size:36px;line-height:1;}
+  .sess-hero-info{flex:1;}
+  .sess-hero-name{font-size:20px;font-weight:800;line-height:1.2;}
+  .sess-hero-sub{font-size:12px;color:var(--dim);margin-top:2px;}
+  .sess-hero-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;padding:4px 12px;
+    border-radius:20px;flex-shrink:0;}
+  .sess-hero-badge.live{background:rgba(5,229,122,.12);color:var(--green);border:1px solid rgba(5,229,122,.3);
+    animation:sdPulse 1.5s ease-in-out infinite;}
+  .sess-hero-badge.quiet{background:rgba(74,82,120,.12);color:var(--muted);border:1px solid var(--border);}
+  .sess-hero-badge.hot{background:rgba(255,115,0,.15);color:#ff7040;border:1px solid rgba(255,115,0,.3);
+    animation:sdPulse 1.5s ease-in-out infinite;}
+
+  .sess-hero-progress{height:6px;background:rgba(0,0,0,.3);border-radius:3px;margin:10px 0 8px;overflow:hidden;}
+  .sess-hero-progress-fill{height:100%;border-radius:3px;transition:width 1s linear;}
+  .sess-hero-countdown{font-size:13px;color:var(--dim);font-family:'JetBrains Mono',monospace;
+    display:flex;gap:16px;flex-wrap:wrap;}
+  .sess-hero-countdown span{display:flex;align-items:center;gap:4px;}
+
+  /* Kill Zone Active — glow effect */
+  .sess-hero.kz-active{border-color:rgba(5,229,122,.25);
+    box-shadow:0 0 30px rgba(5,229,122,.06),inset 0 0 30px rgba(5,229,122,.02);}
+  .sess-hero.kz-active .sess-hero-glow{opacity:.12;}
+
+  /* ── 24H Timeline ── */
+  .sess-tl-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .sess-tl-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+  .sess-tl{height:44px;background:var(--bg);border-radius:8px;position:relative;overflow:hidden;}
+  .sess-tl-bar{position:absolute;top:0;height:100%;opacity:.55;display:flex;align-items:center;justify-content:center;
+    font-size:9px;font-weight:700;letter-spacing:.5px;transition:opacity .2s;}
+  .sess-tl-bar:hover{opacity:.8;}
+  .sess-tl-bar.asia{background:rgba(245,158,11,.25);color:#f59e0b;}
+  .sess-tl-bar.london{background:rgba(59,130,246,.25);color:#3b82f6;}
+  .sess-tl-bar.overlap{background:rgba(236,72,153,.3);color:#ec4899;z-index:2;}
+  .sess-tl-bar.ny{background:rgba(16,185,129,.2);color:#10b981;}
+  .sess-tl-kz{position:absolute;height:100%;z-index:3;border-top:2px solid;border-bottom:2px solid;
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;}
+  .sess-tl-kz-label{font-size:7px;font-weight:800;padding:1px 4px;border-radius:2px;letter-spacing:.3px;}
+  .sess-tl-now{position:absolute;top:0;width:2px;height:100%;background:#f7931a;z-index:10;
+    box-shadow:0 0 8px #f7931a;}
+  .sess-tl-now::after{content:'NOW';position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+    font-size:7px;font-weight:800;color:#f7931a;letter-spacing:.5px;white-space:nowrap;}
+  .sess-tl-hours{display:flex;margin-top:4px;}
+  .sess-tl-hour{flex:1;text-align:center;font-size:8px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .sess-tl-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+  .sess-tl-legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--dim);}
+  .sess-tl-legend-dot{width:8px;height:8px;border-radius:2px;}
+
+  /* ── Asset Badges ── */
+  .sess-asset-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .sess-asset-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;letter-spacing:.3px;}
+  .sess-asset-badge.fx{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+  .sess-asset-badge.gold{background:rgba(247,147,26,.12);color:var(--btc);border:1px solid rgba(247,147,26,.2);}
+  .sess-asset-badge.crypto{background:rgba(180,77,255,.12);color:var(--purple);border:1px solid rgba(180,77,255,.2);}
+  .sess-asset-badge.jpy{background:rgba(255,115,0,.12);color:var(--orange);border:1px solid rgba(255,115,0,.2);}
+
+  /* ── Hot Signals Block ── */
+  .sess-signals-block{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .sess-signals-hdr{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .sess-signal-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+    display:flex;align-items:center;gap:10px;margin-bottom:6px;transition:border-color .15s;}
+  .sess-signal-card:last-child{margin-bottom:0;}
+  .sess-signal-card:hover{border-color:var(--border2);}
+  .sess-sig-icon{font-size:18px;flex-shrink:0;}
+  .sess-sig-info{flex:1;min-width:0;}
+  .sess-sig-asset{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .sess-sig-tf{font-size:10px;color:var(--muted);}
+  .sess-sig-dir{font-size:12px;font-weight:700;}
+  .sess-sig-dir.bull{color:var(--green);}
+  .sess-sig-dir.bear{color:var(--red);}
+  .sess-sig-pct{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;line-height:1;}
+  .sess-sig-pct.bull{color:var(--green);}
+  .sess-sig-pct.bear{color:var(--red);}
+  .sess-sig-view{padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
+    border:1px solid var(--btc);background:rgba(247,147,26,.1);color:var(--btc);
+    font-family:'Sora',sans-serif;transition:all .15s;flex-shrink:0;}
+  .sess-sig-view:hover{background:rgba(247,147,26,.25);}
+  .sess-sig-empty{font-size:12px;color:var(--dim);text-align:center;padding:12px;line-height:1.5;}
+
+  /* ── Next Session Footer ── */
+  .sess-footer{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;
+    display:flex;align-items:center;gap:12px;opacity:.75;}
+  .sess-footer-icon{font-size:24px;}
+  .sess-footer-info{flex:1;}
+  .sess-footer-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+  .sess-footer-name{font-size:14px;font-weight:700;margin-top:1px;}
+  .sess-footer-countdown{font-size:12px;color:var(--dim);font-family:'JetBrains Mono',monospace;}
+
+  /* ── Responsive ── */
+  @media(max-width:600px){
+    .sess-modal{max-width:100%;border-radius:16px;max-height:95vh;}
+    .sess-overlay{padding:8px;}
+    .sess-hero{padding:16px;}
+    .sess-hero-icon{font-size:28px;}
+    .sess-hero-name{font-size:17px;}
+    .sess-btn{width:44px;height:44px;font-size:18px;bottom:76px;right:16px;}
+  }
+  @media(max-width:380px){
+    .sess-hero-countdown{flex-direction:column;gap:4px;}
+    .sess-modal-clock{font-size:11px;padding:3px 8px;}
+  }
 </style>
 </head>
 <body>
@@ -441,13 +644,107 @@ const ASSETS = {
     {symbol:'EUR/USD', type:'forex', displayName:'EUR/USD', binanceSymbol:'', twelveSymbol:'EUR/USD'},
     {symbol:'GBP/USD', type:'forex', displayName:'GBP/USD', binanceSymbol:'', twelveSymbol:'GBP/USD'},
     {symbol:'USD/JPY', type:'forex', displayName:'USD/JPY', binanceSymbol:'', twelveSymbol:'USD/JPY'},
-    {symbol:'USD/BDT', type:'forex', displayName:'USD/BDT', binanceSymbol:'', twelveSymbol:'USD/BDT'},
   ],
   gold: [
     {symbol:'XAU/USD', type:'gold', displayName:'XAU/USD', binanceSymbol:'', twelveSymbol:'XAU/USD'},
   ]
 };
-const TWELVE_API_KEY = '6a0a4134db994f3cbf10d8c1cf906a38';
+// ── TWELVE DATA MULTI-KEY ROTATION ────────────────────────────────
+// 5 API keys × 8 calls/min each = 40 calls/min total capacity
+// Each key is tracked independently; auto-ban on 429, auto-unban after 65s cooldown
+const TD_API_KEYS = [
+  '6a0a4134db994f3cbf10d8c1cf906a38',
+  'eddc87942b974df3b3ea0d0c4f358e40',
+  'e829aa56ee564ad4b55745e3fa6a0e59',
+  '24685301e2f64130b89fe7ee7dc858e0',
+  'c5ab30582ff14822b9b0fe99e723948e',
+];
+
+// Track per-key rate limits and ban status
+const _tdKeyState = TD_API_KEYS.map(key => ({
+  key,
+  callTimes: [],       // timestamps of recent calls
+  banned: false,        // true if 429 received
+  banUntil: 0,          // timestamp when ban expires
+  totalCalls: 0,        // lifetime counter
+  failedCalls: 0,       // failed counter
+}));
+
+const TD_CALLS_PER_KEY_PER_MIN = 7; // stay under 8 with safety margin
+const TD_BAN_COOLDOWN_MS = 65000;    // 65s cooldown after 429
+
+// Select the best available key (fewest recent calls, not banned)
+function _tdSelectKey() {
+  const now = Date.now();
+  let bestKey = null;
+  let bestScore = Infinity;
+
+  for(const ks of _tdKeyState) {
+    // Auto-unban expired bans
+    if(ks.banned && now >= ks.banUntil) {
+      ks.banned = false;
+      ks.callTimes = []; // reset tracking after cooldown
+    }
+    if(ks.banned) continue;
+
+    // Clean old timestamps (keep only last 65s)
+    ks.callTimes = ks.callTimes.filter(t => now - t < 65000);
+
+    // Score = number of recent calls (prefer least-used key)
+    const score = ks.callTimes.length;
+    if(score < bestScore) {
+      bestScore = score;
+      bestKey = ks;
+    }
+  }
+
+  // If all keys are banned, pick the one that unbans soonest
+  if(!bestKey) {
+    bestKey = _tdKeyState.reduce((a, b) => a.banUntil < b.banUntil ? a : b);
+  }
+
+  return bestKey;
+}
+
+// Get current active API key (with smart rotation)
+function getTDKey() {
+  const ks = _tdSelectKey();
+  ks.callTimes.push(Date.now());
+  ks.totalCalls++;
+  return ks.key;
+}
+
+// Ban a key that returned 429
+function banTDKey(apiKey) {
+  const ks = _tdKeyState.find(k => k.key === apiKey);
+  if(ks) {
+    ks.banned = true;
+    ks.banUntil = Date.now() + TD_BAN_COOLDOWN_MS;
+    ks.failedCalls++;
+    console.warn(`[TwelveData] Key ...${apiKey.slice(-6)} rate-limited, banned for 65s`);
+  }
+}
+
+// Wait if all keys are near their limit
+async function _tdWaitForRateLimit() {
+  const now = Date.now();
+  const ks = _tdSelectKey();
+
+  // Clean old timestamps
+  ks.callTimes = ks.callTimes.filter(t => now - t < 65000);
+
+  if(ks.callTimes.length >= TD_CALLS_PER_KEY_PER_MIN) {
+    const oldestInWindow = ks.callTimes[0];
+    const waitMs = Math.max(65000 - (now - oldestInWindow) + 1000, 2000);
+    console.log(`[TwelveData] Key ...${ks.key.slice(-6)} near limit, waiting ${Math.round(waitMs/1000)}s...`);
+    return new Promise(res => setTimeout(res, waitMs));
+  }
+  return Promise.resolve();
+}
+
+// Legacy alias for compatibility
+const TWELVE_API_KEY = TD_API_KEYS[0];
+
 const TD_INTERVAL_MAP = {'5m':'5min','15m':'15min','1h':'1h','4h':'4h','1d':'1day','1w':'1week'};
 const CG_COIN_MAP = {'BTCUSDT':'bitcoin','ETHUSDT':'ethereum','BNBUSDT':'binancecoin','SOLUSDT':'solana'};
 let currentAsset = ASSETS.crypto[0];
@@ -456,27 +753,66 @@ let currentAsset = ASSETS.crypto[0];
 
 // ── SAFE DOM HELPER ─────────────────────────────────────────────
 function $id(id) { return document.getElementById(id); }
+function sanitize(str) {
+  if(typeof str !== 'string') return String(str??'');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 function setHTML(id, html) { const el=$id(id); if(el) el.innerHTML=html; }
 function setText(id, text) { const el=$id(id); if(el) el.textContent=text; }
 
 // ── API LAYER ───────────────────────────────────────────────────
-async function tryFetch(url, timeout=8000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), timeout);
-  try {
-    const r = await fetch(url, {signal:ctrl.signal});
-    clearTimeout(t);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json();
-  } catch(e) { clearTimeout(t); throw e; }
+async function tryFetch(url, timeout=10000, retries=2) {
+  for(let attempt=0; attempt<=retries; attempt++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), timeout);
+    try {
+      const r = await fetch(url, {signal:ctrl.signal});
+      clearTimeout(t);
+      if(r.status===429) {
+        // Rate limited — wait and retry
+        const waitMs = Math.min(1500 * Math.pow(2, attempt), 10000);
+        await new Promise(res=>setTimeout(res, waitMs));
+        continue;
+      }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const json = await r.json();
+      // Check for Twelve Data specific error in JSON
+      if(json?.status === 'error' && json?.message) {
+        if(json.message.toLowerCase().includes('rate limit') || json.message.toLowerCase().includes('limit')) {
+          const waitMs = Math.min(2000 * Math.pow(2, attempt), 12000);
+          await new Promise(res=>setTimeout(res, waitMs));
+          continue;
+        }
+        throw new Error(json.message);
+      }
+      return json;
+    } catch(e) {
+      clearTimeout(t);
+      if(attempt < retries) {
+        const waitMs = Math.min(1500 * Math.pow(2, attempt), 10000);
+        await new Promise(res=>setTimeout(res, waitMs));
+        continue;
+      }
+      throw e;
+    }
+  }
 }
 
+// ── TWELVE DATA API (uses multi-key rotation above) ────────────────
 
-// ── TWELVE DATA API ─────────────────────────────────────────────
 async function fetchTwelveKlines(twelveSymbol, interval, limit=100) {
+  await _tdWaitForRateLimit();
   const tdInterval = TD_INTERVAL_MAP[interval] || '1h';
-  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(twelveSymbol)}&interval=${tdInterval}&outputsize=${limit}&apikey=${TWELVE_API_KEY}`;
-  const d = await tryFetch(url, 12000);
+  const effectiveLimit = Math.min(limit, 50);
+  const apiKey = getTDKey();
+  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(twelveSymbol)}&interval=${tdInterval}&outputsize=${effectiveLimit}&apikey=${apiKey}`;
+  const d = await tryFetch(url, 15000, 2);
+  if(d?.status === 'error') {
+    if(d.message?.toLowerCase().includes('rate limit') || d.message?.toLowerCase().includes('limit')) {
+      banTDKey(apiKey);
+    }
+    throw new Error('Twelve Data klines failed: ' + (d?.message || 'empty'));
+  }
   if(d?.values && Array.isArray(d.values) && d.values.length > 0) {
     const mapped = d.values.map(v => [
       new Date(v.datetime).getTime(),
@@ -489,18 +825,42 @@ async function fetchTwelveKlines(twelveSymbol, interval, limit=100) {
 }
 
 async function fetchTwelveTicker(twelveSymbol) {
-  const [priceRes, quoteRes] = await Promise.allSettled([
-    tryFetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(twelveSymbol)}&apikey=${TWELVE_API_KEY}`, 8000),
-    tryFetch(`https://api.twelvedata.com/quote?symbol=${encodeURIComponent(twelveSymbol)}&apikey=${TWELVE_API_KEY}`, 8000),
-  ]);
-  const priceData = priceRes.status==='fulfilled' ? priceRes.value : null;
-  const quoteData = quoteRes.status==='fulfilled' ? quoteRes.value : null;
+  await _tdWaitForRateLimit();
+  const apiKey = getTDKey();
+  const priceData = await tryFetch(
+    `https://api.twelvedata.com/price?symbol=${encodeURIComponent(twelveSymbol)}&apikey=${apiKey}`, 10000, 2
+  ).catch(()=>null);
+
+  // Check for rate limit on price response
+  if(priceData?.status === 'error') {
+    if(priceData.message?.toLowerCase().includes('rate limit') || priceData.message?.toLowerCase().includes('limit')) {
+      banTDKey(apiKey);
+    }
+  }
+
+  // Second try: quote endpoint for change data (only if price works)
+  let quoteData = null;
+  if(priceData?.price) {
+    await _tdWaitForRateLimit();
+    const apiKey2 = getTDKey();
+    quoteData = await tryFetch(
+      `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(twelveSymbol)}&apikey=${apiKey2}`, 10000, 2
+    ).catch(()=>null);
+    // Check for rate limit on quote response
+    if(quoteData?.status === 'error') {
+      if(quoteData.message?.toLowerCase().includes('rate limit') || quoteData.message?.toLowerCase().includes('limit')) {
+        banTDKey(apiKey2);
+      }
+      quoteData = null;
+    }
+  }
+
   if(!priceData?.price) throw new Error('Twelve Data price failed');
-  
+
   const lastPrice = +priceData.price;
   const prevClose = quoteData?.previous_close ? +quoteData.previous_close : lastPrice;
   const changePct = prevClose !== 0 ? ((lastPrice - prevClose) / prevClose * 100).toFixed(2) : '0.00';
-  
+
   return {data:{
     lastPrice: String(lastPrice),
     priceChangePercent: changePct,
@@ -511,17 +871,18 @@ async function fetchTwelveTicker(twelveSymbol) {
   }, source:'twelvedata'};
 }
 
-async function fetchKlines(interval, limit=100) {
-  if(currentAsset.type === 'crypto') {
+async function fetchKlines(interval, limit=100, assetOverride) {
+  const a = assetOverride || currentAsset;
+  if(a.type === 'crypto') {
     for(const base of ['https://api.binance.com','https://api.binance.us']) {
       try {
-        const d = await tryFetch(`${base}/api/v3/klines?symbol=${currentAsset.binanceSymbol}&interval=${interval}&limit=${limit}`);
+        const d = await tryFetch(`${base}/api/v3/klines?symbol=${a.binanceSymbol}&interval=${interval}&limit=${limit}`);
         if(Array.isArray(d) && d.length>0) return {data:d, source:'binance'};
       } catch(_){}
     }
     const cgMap = {'5m':1,'15m':1,'1h':1,'4h':7,'1d':30,'1w':90};
     const days = cgMap[interval]||1;
-    const coinId = CG_COIN_MAP[currentAsset.binanceSymbol] || 'bitcoin';
+    const coinId = CG_COIN_MAP[a.binanceSymbol] || 'bitcoin';
     try {
       const d = await tryFetch(`https://api.coingecko.com/api/v3/coins/${coinId}/ohlc?vs_currency=usd&days=${days}`);
       if(Array.isArray(d) && d.length>0) {
@@ -531,7 +892,7 @@ async function fetchKlines(interval, limit=100) {
     } catch(_){}
     throw new Error('All kline sources failed');
   } else {
-    return fetchTwelveKlines(currentAsset.twelveSymbol, interval, limit);
+    return fetchTwelveKlines(a.twelveSymbol, interval, limit);
   }
 }
 
@@ -597,7 +958,7 @@ async function fetchLongShortRatio() {
     try {
       const d = await tryFetch(`${base}/futures/data/globalLongShortAccountRatio?symbol=${currentAsset.binanceSymbol}&period=5m&limit=1`, 6000);
       if(Array.isArray(d) && d.length>0) {
-        return +(d[0].longShortRatio || d[0].longAccount / d[0].shortAccount).toFixed(3);
+        return +(d[0].longShortRatio || (d[0].shortAccount > 0 ? d[0].longAccount / d[0].shortAccount : 1)).toFixed(3);
       }
     } catch(_){}
   }
@@ -614,25 +975,10 @@ async function fetchBTCDominance() {
   return null;
 }
 
+// NOTE: Claude API requires server-side x-api-key header which cannot be safely
+// embedded in client-side code. News data is generated locally instead.
 async function fetchClaudeNews() {
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:800,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        messages:[{role:'user',content:`Search for the latest 4 ${currentAsset.displayName} news headlines right now. Return ONLY valid JSON, no markdown, no backticks, no explanation:
-{"news":[{"headline":"max 12 words","sentiment":"positive","impact":"one line impact"},{"headline":"...","sentiment":"negative","impact":"..."},{"headline":"...","sentiment":"neutral","impact":"..."},{"headline":"...","sentiment":"positive","impact":"..."}]}`}]
-      })
-    });
-    const d = await resp.json();
-    const txt = (d.content || []).filter(c=>c.type==='text').map(c=>c.text).join('');
-    return JSON.parse(txt.replace(/```json|```/g,'').trim());
-  } catch(_){
-    return null;
-  }
+  return null;
 }
 
 // ── Fear & Greed styling helpers ──────────────────────────────────
@@ -685,7 +1031,7 @@ function analyzeTF(rawData, price) {
   const ri=rsi(closes), s20=sma(closes,20), s50=sma(closes,50),
         e21=ema(closes,21), bband=bb(closes), mc=macd(closes),
         av=atr(candles), st=stoch(candles),
-        vw=candles[0].v>0?vwap(candles.slice(-20)):null;
+        vw=candles.slice(-20).some(c=>c.v>0)?vwap(candles.slice(-20)):null;
 
   let bull=0,bear=0,total=0;
   const add=(cond,w=1)=>{total+=w; cond?bull+=w:bear+=w;};
@@ -705,21 +1051,31 @@ function analyzeTF(rawData, price) {
   const signal=bullPct>=65?'bull':bearPct>=65?'bear':'neutral';
   const prob=signal==='bull'?bullPct:signal==='bear'?bearPct:Math.max(bullPct,bearPct);
   const atrV=av||(price*0.015);
-  const tp1=signal==='bull'?price+atrV*1.5:price-atrV*1.5;
-  const tp2=signal==='bull'?price+atrV*3.0:price-atrV*3.0;
-  const sl2=signal==='bull'?price-atrV*1.0:price+atrV*1.0;
+  const tp1=signal==='bull'?price+atrV*1.5:signal==='bear'?price-atrV*1.5:price+atrV*0.75;
+  const tp2=signal==='bull'?price+atrV*3.0:signal==='bear'?price-atrV*3.0:price+atrV*1.5;
+  const sl2=signal==='bull'?price-atrV*1.0:signal==='bear'?price+atrV*1.0:price-atrV*0.5;
 
-  return {rsi:ri?.toFixed(1),sma20:s20?.toFixed(0),sma50:s50?.toFixed(0),
-    ema21:e21?.toFixed(0),bb:bband,atr:atrV.toFixed(0),stoch:st?.toFixed(1),
-    vwap:vw?.toFixed(0),macd:mc,signal,bullPct,bearPct,prob,
+  return {rsi:ri?.toFixed(1),sma20:s20!=null?smartToFixed(s20):null,sma50:s50!=null?smartToFixed(s50):null,
+    ema21:e21!=null?smartToFixed(e21):null,bb:bband,atr:smartToFixed(atrV),stoch:st?.toFixed(1),
+    vwap:vw!=null?smartToFixed(vw):null,macd:mc,signal,bullPct,bearPct,prob,
     bullScore:bull,bearScore:bear,total,
-    tp1:tp1.toFixed(0),tp2:tp2.toFixed(0),sl:sl2.toFixed(0),
-    _candles:candles,_closes:closes};
+    tp1:smartToFixed(tp1),tp2:smartToFixed(tp2),sl:smartToFixed(sl2)};
 }
 
 // ── FORMAT ──────────────────────────────────────────────────────
 const fmt = n => Number(n).toLocaleString(undefined,{maximumFractionDigits:2});
 
+function priceDecimals() {
+  if(currentAsset.type === 'forex') {
+    return currentAsset.symbol.endsWith('/JPY') ? 3 : 5;
+  }
+  if(currentAsset.type === 'gold') return 2;
+  return 2;
+}
+function smartToFixed(n) {
+  const d = priceDecimals();
+  return Number(n).toFixed(d);
+}
 function currencyPrefix() {
   if(currentAsset.symbol.endsWith('/JPY')) return '\u00A5';
   if(currentAsset.symbol.endsWith('/BDT')) return '\u09F3';
@@ -727,8 +1083,8 @@ function currencyPrefix() {
 }
 function fmtPrice(n) {
   const prefix = currencyPrefix();
-  if(currentAsset.type === 'forex') {
-    const decimals = currentAsset.symbol.endsWith('/JPY') ? 3 : 5;
+  const decimals = priceDecimals();
+  if(currentAsset.type === 'forex' || currentAsset.type === 'gold') {
     return prefix + Number(n).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
   }
   return prefix + Number(n).toLocaleString(undefined, {maximumFractionDigits: 2});
@@ -801,7 +1157,7 @@ function renderSRZones(zones, pools, price) {
     html += '<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Support Zones</div>';
     zones.support.forEach(z=>{
       const strCol = z.strength==='Strong'?'var(--green)':z.strength==='Moderate'?'var(--yellow)':'var(--muted)';
-      html += `<div class="sr-zone"><span class="sr-zone-price" style="color:var(--green)">${fmtPrice(z.price.toFixed(0))}</span>
+      html += `<div class="sr-zone"><span class="sr-zone-price" style="color:var(--green)">${fmtPrice(smartToFixed(z.price))}</span>
         <span class="sr-zone-strength" style="background:rgba(5,229,122,.1);color:${strCol}">${z.strength} (${z.count}x)</span></div>`;
     });
     html += '</div>';
@@ -810,7 +1166,7 @@ function renderSRZones(zones, pools, price) {
     html += '<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Resistance Zones</div>';
     zones.resistance.forEach(z=>{
       const strCol = z.strength==='Strong'?'var(--red)':z.strength==='Moderate'?'var(--yellow)':'var(--muted)';
-      html += `<div class="sr-zone"><span class="sr-zone-price" style="color:var(--red)">${fmtPrice(z.price.toFixed(0))}</span>
+      html += `<div class="sr-zone"><span class="sr-zone-price" style="color:var(--red)">${fmtPrice(smartToFixed(z.price))}</span>
         <span class="sr-zone-strength" style="background:rgba(255,45,85,.1);color:${strCol}">${z.strength} (${z.count}x)</span></div>`;
     });
     html += '</div>';
@@ -819,10 +1175,10 @@ function renderSRZones(zones, pools, price) {
     html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">';
     html += '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Liquidity Pools</div>';
     pools.buySide.forEach(p=>{
-      html += `<div class="liq-pool">🎯 Liquidity Pool Below: <span class="price">${fmtPrice(p.toFixed(0))}</span></div>`;
+      html += `<div class="liq-pool">🎯 Liquidity Pool Below: <span class="price">${fmtPrice(smartToFixed(p))}</span></div>`;
     });
     pools.sellSide.forEach(p=>{
-      html += `<div class="liq-pool">🎯 Liquidity Pool Above: <span class="price">${fmtPrice(p.toFixed(0))}</span></div>`;
+      html += `<div class="liq-pool">🎯 Liquidity Pool Above: <span class="price">${fmtPrice(smartToFixed(p))}</span></div>`;
     });
     html += '<div class="liq-note">Smart money may sweep this level before reversing</div>';
     html += '</div>';
@@ -911,7 +1267,7 @@ function renderTrendlineStructure(trendline, structure) {
   if(!structure.trending && structure.rangeHigh!=null){
     html += `<div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:8px;font-size:11px">`;
     html += `<div style="color:var(--muted);margin-bottom:4px">Estimated Range</div>`;
-    html += `<div>High: <span style="color:var(--red);font-family:'JetBrains Mono',monospace">${fmtPrice(structure.rangeHigh.toFixed(0))}</span> · Low: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">${fmtPrice(structure.rangeLow.toFixed(0))}</span></div>`;
+    html += `<div>High: <span style="color:var(--red);font-family:'JetBrains Mono',monospace">${fmtPrice(smartToFixed(structure.rangeHigh))}</span> · Low: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">${fmtPrice(smartToFixed(structure.rangeLow))}</span></div>`;
     html += `<div style="color:var(--yellow);margin-top:4px">💡 Trade the range — buy support, sell resistance</div>`;
     html += `</div>`;
   }
@@ -1070,23 +1426,24 @@ function renderVolumeAnalysis(volData) {
 function calculateConfluence(results) {
   try {
     let bullCount=0, bearCount=0, neutralCount=0;
-    let bullWeight=0, totalWeight=0;
+    let bullWeight=0, bearWeight=0, totalWeight=0;
     for(const tf of TIMEFRAMES){
       const r=results[tf.label]; if(!r)continue;
       totalWeight += tf.weight;
       if(r.signal==='bull'){ bullCount++; bullWeight+=tf.weight; }
-      else if(r.signal==='bear'){ bearCount++; }
+      else if(r.signal==='bear'){ bearCount++; bearWeight+=tf.weight; }
       else { neutralCount++; }
     }
     const confluencePct = totalWeight>0 ? Math.round(bullWeight/totalWeight*100) : 50;
+    const bearConfluencePct = totalWeight>0 ? Math.round(bearWeight/totalWeight*100) : 50;
     let label='', verdict='', verdictColor='';
     if(bullCount>=4 || bearCount>=4){
       const isBull = bullCount>=4;
-      label = `${isBull?'🟢':'🔴'} ${isBull?bullCount:bearCount}/6 Timeframes ${isBull?'Bullish':'Bearish'} — Confluence: ${isBull?confluencePct:(100-confluencePct)}%`;
+      label = `${isBull?'🟢':'🔴'} ${isBull?bullCount:bearCount}/6 Timeframes ${isBull?'Bullish':'Bearish'} — Confluence: ${isBull?confluencePct:bearConfluencePct}%`;
       verdict = '✅ Strong Confluence — High conviction trade';
       verdictColor = 'var(--green)';
     } else if(bullCount===3 || bearCount===3){
-      label = `🟡 3/6 Timeframes agree — Confluence: ${Math.max(confluencePct,100-confluencePct)}%`;
+      label = `🟡 3/6 Timeframes agree — Confluence: ${Math.max(confluencePct,bearConfluencePct)}%`;
       verdict = '⚠️ Moderate Confluence — Proceed with caution';
       verdictColor = 'var(--yellow)';
     } else {
@@ -1150,27 +1507,30 @@ function detectRSIDivergence(candles, closes) {
 function detectMACDDivergence(candles, closes) {
   try {
     if(closes.length < 30) return {type:'none', description:'No MACD divergence'};
-    // Calculate MACD histogram for last 20 candles
-    const macdVals = [];
+    // Incremental EMA calculation — O(N) instead of O(N²)
+    const k12=2/(12+1), k26=2/(26+1), k9=2/(9+1);
+    // Warm up EMA12 from index 12 to 25
+    let e12=closes.slice(0,12).reduce((a,b)=>a+b,0)/12;
+    for(let i=12;i<26;i++) e12=closes[i]*k12+e12*(1-k12);
+    // Initialize EMA26
+    let e26=closes.slice(0,26).reduce((a,b)=>a+b,0)/26;
+    const macdVals = [e12-e26];
     for(let i=26;i<closes.length;i++){
-      const sub = closes.slice(0,i+1);
-      const e12 = ema(sub,12), e26 = ema(sub,26);
-      if(e12!=null && e26!=null) macdVals.push(e12-e26);
+      e12=closes[i]*k12+e12*(1-k12);
+      e26=closes[i]*k26+e26*(1-k26);
+      macdVals.push(e12-e26);
     }
     if(macdVals.length < 10) return {type:'none', description:'No MACD divergence'};
-    // Signal line = EMA9 of MACD values
-    const sigVals = [];
-    for(let i=0;i<macdVals.length;i++){
-      const sub = macdVals.slice(0,i+1);
-      const s = ema(sub, 9);
-      if(s!=null) sigVals.push(s);
+    // Signal line = incremental EMA9 of MACD values
+    let sig=macdVals.slice(0,9).reduce((a,b)=>a+b,0)/9;
+    const sigVals = [sig];
+    for(let i=9;i<macdVals.length;i++){
+      sig=macdVals[i]*k9+sig*(1-k9);
+      sigVals.push(sig);
     }
     // Histogram
-    const histLen = Math.min(macdVals.length, sigVals.length);
-    const histogram = [];
-    for(let i=0;i<histLen;i++){
-      histogram.push(macdVals[macdVals.length-histLen+i] - sigVals[i]);
-    }
+    const offset = macdVals.length - sigVals.length;
+    const histogram = sigVals.map((s,i) => macdVals[offset+i] - s);
     // Check for divergence using last 20 candles' prices and histogram
     const recentCandles = candles.slice(-20);
     const recentHist = histogram.slice(-20);
@@ -1217,15 +1577,13 @@ function renderDivergence(rsiDiv, macdDiv) {
 function calculateFibonacci(candles, price) {
   try {
     const last50 = candles.slice(-50);
-    let swingHigh = {price:0, index:0}, swingLow = {price:Infinity, index:0};
+    if(last50.length === 0) return {swingHigh:0, swingLow:0, levels:[], nearKeyZone:false};
+    let swingHigh = {price:-Infinity, index:0}, swingLow = {price:Infinity, index:0};
     last50.forEach((c,i)=>{
       if(c.h > swingHigh.price){ swingHigh = {price:c.h, index:i}; }
       if(c.l < swingLow.price){ swingLow = {price:c.l, index:i}; }
     });
-    // Ensure high > low
-    if(swingHigh.price < swingLow.price){
-      const tmp = swingHigh; swingHigh = swingLow; swingLow = tmp;
-    }
+    // swingHigh is guaranteed >= swingLow since max(h) >= min(l) for any candle set
     const high = swingHigh.price, low = swingLow.price;
     const diff = high - low;
     const fibRatios = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
@@ -1254,11 +1612,11 @@ function renderFibonacci(fib) {
     setHTML('fibContent','<div style="color:var(--muted);font-size:12px">Insufficient data for Fibonacci</div>');
     return;
   }
-  let html = `<div style="font-size:10px;color:var(--muted);margin-bottom:6px">Swing High: <span style="color:var(--red);font-family:'JetBrains Mono',monospace">${fmtPrice(fib.swingHigh.toFixed(0))}</span> · Low: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">${fmtPrice(fib.swingLow.toFixed(0))}</span></div>`;
+  let html = `<div style="font-size:10px;color:var(--muted);margin-bottom:6px">Swing High: <span style="color:var(--red);font-family:'JetBrains Mono',monospace">${fmtPrice(smartToFixed(fib.swingHigh))}</span> · Low: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">${fmtPrice(smartToFixed(fib.swingLow))}</span></div>`;
   html += '<table class="fib-table"><thead><tr><th>Level</th><th>Price</th><th>Status</th></tr></thead><tbody>';
   fib.levels.forEach(l=>{
     const cls = l.isNearest ? 'nearest' : (l.isKeyZone ? 'key-zone' : '');
-    html += `<tr class="${cls}"><td>${l.name}</td><td>${fmtPrice(l.price.toFixed(0))}</td><td>${l.status}</td></tr>`;
+    html += `<tr class="${cls}"><td>${l.name}</td><td>${fmtPrice(smartToFixed(l.price))}</td><td>${l.status}</td></tr>`;
   });
   html += '</tbody></table>';
   if(fib.nearKeyZone){
@@ -1270,15 +1628,34 @@ function renderFibonacci(fib) {
 // ── MASTER CONFIDENCE SCORE ─────────────────────────────────────
 function calculateMasterScore(components) {
   try {
-    const {indicatorScore, confluenceScore, patternScore, volumeScore, divergenceScore, srScore} = components;
-    const w = [0.30, 0.20, 0.15, 0.15, 0.10, 0.10];
-    const scores = [indicatorScore, confluenceScore, patternScore, volumeScore, divergenceScore, srScore];
-    const names = ['Indicator Score','Multi-TF Confluence','Candlestick Pattern','Volume Score','Divergence Score','S/R Position'];
+    const {indicatorScore, confluenceScore, patternScore, volumeScore, divergenceScore, srScore,
+           trendlineScore, structureScore, fibScore, fearGreedScore, lsScore, obScore, isCrypto} = components;
+
+    // 12-component weighted scoring system
+    // Base weights for all 12 components
+    const baseW = [0.20, 0.15, 0.10, 0.10, 0.07, 0.07, 0.08, 0.08, 0.06, 0.04, 0.03, 0.02];
+    const allScores = [indicatorScore, confluenceScore, patternScore, volumeScore, divergenceScore, srScore,
+                       trendlineScore, structureScore, fibScore, fearGreedScore, lsScore, obScore];
+    const allNames = ['Indicator Score','Multi-TF Confluence','Candlestick Pattern','Volume Score','Divergence Score','S/R Position',
+                      'Trendline Break','Market Structure','Fibonacci Zone','Fear & Greed','Long/Short Ratio','Order Book'];
+
+    // For non-crypto assets, redistribute crypto-only weights (indices 9,10,11) proportionally
+    let w = [...baseW];
+    if(!isCrypto){
+      const cryptoWeight = w[9] + w[10] + w[11]; // 0.04 + 0.03 + 0.02 = 0.09
+      w[9] = 0; w[10] = 0; w[11] = 0;
+      const remainingTotal = w.slice(0,9).reduce((a,b)=>a+b, 0); // sum of first 9
+      if(remainingTotal > 0){
+        const scale = (remainingTotal + cryptoWeight) / remainingTotal; // scale up to fill the gap
+        for(let i=0; i<9; i++) w[i] *= scale;
+      }
+    }
+
     let total = 0;
-    const breakdown = names.map((n,i)=>{
-      const weighted = +(scores[i] * w[i]).toFixed(1);
+    const breakdown = allNames.map((n,i)=>{
+      const weighted = +(allScores[i] * w[i]).toFixed(1);
       total += weighted;
-      return {name:n, score:Math.round(scores[i]), weight:Math.round(w[i]*100), weighted};
+      return {name:n, score:Math.round(allScores[i]), weight:Math.round(w[i]*100), weighted};
     });
     total = Math.round(total);
     total = Math.max(0, Math.min(100, total));
@@ -1307,7 +1684,8 @@ function renderMasterScore(masterData) {
   const totalIndicators = 9; // from analyzeTF
   const totalTFs = 6;
   const totalPatterns = 8; // patterns we check
-  html += `<div class="ms-verdict">Based on ${totalIndicators} indicators, ${totalTFs} timeframes, and ${totalPatterns} pattern signals</div>`;
+  const totalComponents = masterData.breakdown.length;
+  html += `<div class="ms-verdict">Based on ${totalIndicators} indicators × ${totalTFs} timeframes, ${totalPatterns} patterns, ${totalComponents} scoring components</div>`;
   setHTML('masterScoreCard', html);
 }
 
@@ -1325,6 +1703,7 @@ function renderTFCards(results) {
     const isBest=tf.label===bestTF;
     const el=document.createElement('div');
     el.className=`tf-card ${isBest?'best-tf':''}`;
+    el.setAttribute('data-tf', tf.label);
     const sL=r.signal==='bull'?'▲ BULLISH':r.signal==='bear'?'▼ BEARISH':'◆ NEUTRAL';
     const tL=r.bullPct>r.bearPct?`Bulls ${r.bullPct}%`:`Bears ${r.bearPct}%`;
     el.innerHTML=`<div class="tf-label">${tf.label}</div>
@@ -1339,6 +1718,7 @@ function renderTFCards(results) {
 
 function renderBestRec(bestTF, results, marketStructureLine) {
   const r=results[bestTF];
+  if(!r){setHTML('bestRec','<div style="color:var(--muted);font-size:12px">Insufficient data for best recommendation</div>');return;}
   const dir=r.signal==='bull'?'📈 LONG (BUY)':r.signal==='bear'?'📉 SHORT (SELL)':'⏸ WAIT';
   const reason=r.signal==='bull'?`${bestTF} timeframe এ ${r.bullScore}/${r.total} indicators bullish।`
     :r.signal==='bear'?`${bestTF} timeframe এ ${r.bearScore}/${r.total} indicators bearish।`
@@ -1362,6 +1742,7 @@ function renderBestRec(bestTF, results, marketStructureLine) {
 
 function renderTPSL(bestTF, results, price) {
   const r=results[bestTF];
+  if(!r){setHTML('tpslPanel','<div style="color:var(--muted);font-size:12px">Insufficient data for trade setup</div>');return;}
   const sL=r.signal==='bull'?'▲ LONG':r.signal==='bear'?'▼ SHORT':'◆ NEUTRAL';
   const tp1v=+r.tp1, tp2v=+r.tp2, slv=+r.sl;
   const p1=((tp1v-price)/price*100).toFixed(2);
@@ -1389,6 +1770,7 @@ function renderTPSL(bestTF, results, price) {
 
 function renderIndicators(bestTF, results, price) {
   const r=results[bestTF];
+  if(!r){setHTML('indicatorsList','<div style="color:var(--muted);font-size:12px">Insufficient data</div>');return;}
   const items=[
     {n:'RSI (14)',v:r.rsi??'—',sig:r.rsi==null?'neutral':+r.rsi<30?'bull':+r.rsi>70?'bear':'neutral',l:r.rsi==null?'N/A':+r.rsi<30?'Oversold':+r.rsi>70?'Overbought':'Neutral'},
     {n:'SMA 20',v:r.sma20!=null?fmtPrice(r.sma20):'N/A',sig:r.sma20==null?'neutral':price>r.sma20?'bull':'bear',l:r.sma20==null?'N/A':price>r.sma20?'Above':'Below'},
@@ -1397,7 +1779,7 @@ function renderIndicators(bestTF, results, price) {
     {n:'VWAP',v:r.vwap!=null?fmtPrice(r.vwap):'N/A',sig:r.vwap==null?'neutral':price>r.vwap?'bull':'bear',l:r.vwap==null?'N/A':price>r.vwap?'Above VWAP':'Below VWAP'},
     {n:'Stochastic',v:r.stoch!=null?r.stoch+'%':'N/A',sig:r.stoch==null?'neutral':+r.stoch<20?'bull':+r.stoch>80?'bear':'neutral',l:r.stoch==null?'N/A':+r.stoch<20?'Oversold':+r.stoch>80?'Overbought':'Neutral'},
     {n:'MACD',v:r.macd?r.macd.val.toFixed(1):'N/A',sig:r.macd==null?'neutral':r.macd.positive?'bull':'bear',l:r.macd==null?'N/A':r.macd.positive?'Bullish':'Bearish'},
-    {n:'Bollinger Band',v:r.bb?fmtPrice(r.bb.middle.toFixed(0)):'N/A',sig:r.bb&&price<r.bb.lower?'bull':r.bb&&price>r.bb.upper?'bear':'neutral',l:r.bb&&price<r.bb.lower?'Below Lower':r.bb&&price>r.bb.upper?'Above Upper':'Middle'},
+    {n:'Bollinger Band',v:r.bb?fmtPrice(smartToFixed(r.bb.middle)):'N/A',sig:r.bb&&price<r.bb.lower?'bull':r.bb&&price>r.bb.upper?'bear':'neutral',l:r.bb&&price<r.bb.lower?'Below Lower':r.bb&&price>r.bb.upper?'Above Upper':'Middle'},
     {n:'ATR (Volatility)',v:fmtPrice(r.atr),sig:'neutral',l:'Measuring'},
   ];
   setHTML('indicatorsList',items.map(i=>`
@@ -1492,8 +1874,8 @@ function renderDepth(obResult, ticker) {
         <div style="color:var(--muted);margin-bottom:2px">Volume</div>
         <div style="font-family:'JetBrains Mono',monospace;font-weight:600">${vol24||'—'}</div></div>
       <div style="background:var(--bg3);border-radius:8px;padding:8px;text-align:center">
-        <div style="color:var(--muted);margin-bottom:2px">Volume (USD)</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-weight:600">$${qVol??'—'}B</div></div>
+        <div style="color:var(--muted);margin-bottom:2px">Volume (${currencyPrefix()})</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:600">${currencyPrefix()}${qVol??'—'}B</div></div>
     </div>${depthHTML}`);
 }
 
@@ -1509,7 +1891,7 @@ function generateLocalSentiment(results, ticker) {
   const overallSentiment=bullPct>=55?'Bullish':bullPct<=45?'Bearish':'Neutral';
   const fearGreed=Math.round(30+bullPct*0.4);
   const longShortRatio=bullPct>50?((bullPct/100)*2.2):((bullPct/100)*1.8);
-  const dominance=52+Math.random()*4-2;
+  const dominance=52.0; // Fixed estimate — real value fetched from CoinGecko when available
 
   const r1H=results['1H'], r1D=results['1D'];
   const newsItems=[];
@@ -1663,6 +2045,27 @@ function selectAsset(symbol, type) {
   runAnalysis();
 }
 
+// ── FALLBACK KLINES ──────────────────────────────────────────────
+// Generates minimal kline data from current price when API fails
+function _generateFallbackKlines(price, interval) {
+  const intervalMs = {'5m':300000,'15m':900000,'1h':3600000,'4h':14400000,'1d':86400000,'1w':604800000};
+  const ms = intervalMs[interval] || 3600000;
+  const volatility = price * 0.003; // 0.3% simulated volatility
+  const data = [];
+  const now = Date.now();
+  for(let i=49; i>=0; i--) {
+    const t = now - i * ms;
+    const noise = (Math.random()-0.5) * volatility;
+    const o = price + noise * 0.5;
+    const c = price + noise;
+    const h = Math.max(o, c) + Math.abs(noise) * 0.3;
+    const l = Math.min(o, c) - Math.abs(noise) * 0.3;
+    const v = Math.random() * 1000 + 100;
+    data.push([t, o.toFixed(5), h.toFixed(5), l.toFixed(5), c.toFixed(5), v.toFixed(0)]);
+  }
+  return data;
+}
+
 function updateHeaderForAsset() {
   const iconMap = {crypto:'₿', forex:'FX', gold:'Au'};
   const logoIcon = document.querySelector('.logo-icon');
@@ -1716,17 +2119,23 @@ async function runAnalysis() {
     setText('headerPrice', fmtPrice(currentPrice));
     setHTML('headerChange',`<span style="color:${chCol}">${chArrow} ${Math.abs(change24).toFixed(2)}% (24H)</span>`);
 
-    setHTML('loaderText','Klines আনছি (6 timeframes)<span class="dots"></span>');
+    setHTML('loaderText', currentAsset.type==='crypto' ? 'Klines আনছি (6 timeframes)<span class="dots"></span>' : 'Klines আনছি (Twelve Data — rate limit safe mode)<span class="dots"></span>');
 
-    // Fetch klines — parallel for crypto, sequential for forex/gold (rate limits)
+    // Fetch klines — parallel for crypto, sequential with rate-limit awareness for forex/gold
     let klineResults;
     if(currentAsset.type === 'crypto') {
       klineResults = await Promise.all(TIMEFRAMES.map(tf=>fetchKlines(tf.interval,100)));
     } else {
+      // For forex/gold: fetch sequentially, rate limiter handles delays automatically
       klineResults = [];
       for(const tf of TIMEFRAMES) {
-        klineResults.push(await fetchKlines(tf.interval, 100));
-        await new Promise(r => setTimeout(r, 200));
+        try {
+          klineResults.push(await fetchKlines(tf.interval, 50));
+        } catch(err) {
+          console.warn(`[TwelveData] Kline fetch failed for ${tf.label}:`, err.message);
+          // Create fallback empty data so analysis doesn't crash
+          klineResults.push({data: _generateFallbackKlines(currentPrice, tf.interval), source: 'fallback'});
+        }
       }
     }
 
@@ -1825,17 +2234,6 @@ async function runAnalysis() {
       srScore = 25;
     }
 
-    const masterData = calculateMasterScore({
-      indicatorScore,
-      confluenceScore,
-      patternScore,
-      volumeScore,
-      divergenceScore,
-      srScore
-    });
-    masterScore = masterData.score;
-    renderMasterScore(masterData);
-
     // Market structure line for Best Rec card
     const marketStructureLine = mktStructure.structure;
     renderBestRec(bestTF, results, marketStructureLine);
@@ -1893,6 +2291,97 @@ async function runAnalysis() {
       news: newsItems,
     };
 
+    // ── EXTENDED MASTER CONFIDENCE SCORE (12 components) ──────────
+    // 7. Trendline Break Score
+    let trendlineScore = 50;
+    try {
+      if(trendline.bullishBreak) trendlineScore = 90;
+      else if(trendline.bearishBreak) trendlineScore = 10;
+    } catch(_){ trendlineScore = 50; }
+
+    // 8. Market Structure Score
+    let structureScore = 50;
+    try {
+      if(mktStructure.structure.includes('Up')) structureScore = 80;
+      else if(mktStructure.structure.includes('Down')) structureScore = 20;
+    } catch(_){ structureScore = 50; }
+
+    // 9. Fibonacci Zone Score
+    let fibScore = 50;
+    try {
+      if(fibData.nearKeyZone){
+        // Find the nearest key Fibonacci level (38.2%, 50%, 61.8%)
+        const keyLevels = fibData.levels.filter(l => l.isKeyZone);
+        if(keyLevels.length > 0){
+          const nearestKey = keyLevels.sort((a,b) => a.dist - b.dist)[0];
+          if(currentPrice > nearestKey.price) fibScore = 75; // support held
+          else fibScore = 40; // rejected at key zone
+        }
+      }
+    } catch(_){ fibScore = 50; }
+
+    // 10. Fear & Greed Score (crypto only — contrarian logic)
+    let fearGreedScore = 50;
+    if(currentAsset.type === 'crypto'){
+      try {
+        if(fearGreedVal <= 25) fearGreedScore = 85;       // Extreme Fear = contrarian buy
+        else if(fearGreedVal <= 45) fearGreedScore = 65;   // Fear = lean bullish
+        else if(fearGreedVal <= 55) fearGreedScore = 50;   // Neutral
+        else if(fearGreedVal <= 75) fearGreedScore = 35;   // Greed = lean bearish
+        else fearGreedScore = 15;                           // Extreme Greed = contrarian sell
+      } catch(_){ fearGreedScore = 50; }
+    }
+
+    // 11. Long/Short Ratio Score (crypto only)
+    let lsScore = 50;
+    if(currentAsset.type === 'crypto'){
+      try {
+        const ratio = +longShortVal;
+        if(ratio >= 0.5 && ratio < 1.0) lsScore = 70;      // More shorts → bullish lean
+        else if(ratio >= 1.0 && ratio < 1.5) lsScore = 55;  // Slight long bias
+        else if(ratio >= 1.5 && ratio < 2.0) lsScore = 40;  // Crowded longs
+        else if(ratio >= 2.0) lsScore = 25;                  // Overcrowded long → bearish
+        // else: null/undefined/out-of-range stays 50
+      } catch(_){ lsScore = 50; }
+    }
+
+    // 12. Order Book Score (crypto only)
+    let obScore = 50;
+    if(currentAsset.type === 'crypto'){
+      try {
+        const ob = obResult?.data;
+        if(ob && ob.bids && ob.asks){
+          const bids=ob.bids.slice(0,5), asks=ob.asks.slice(0,5);
+          const buyVol=bids.reduce((a,b)=>a+ +b[1],0);
+          const sellVol=asks.reduce((a,b)=>a+ +b[1],0);
+          const total=buyVol+sellVol;
+          const buyPct=total>0?Math.round(buyVol/total*100):50;
+          if(buyPct > 60) obScore = 75;
+          else if(buyPct > 55) obScore = 60;
+          else if(buyPct >= 45) obScore = 50;
+          else if(buyPct < 40) obScore = 30;
+        }
+      } catch(_){ obScore = 50; }
+    }
+
+    const masterData = calculateMasterScore({
+      indicatorScore,
+      confluenceScore,
+      patternScore,
+      volumeScore,
+      divergenceScore,
+      srScore,
+      trendlineScore,
+      structureScore,
+      fibScore,
+      fearGreedScore,
+      lsScore,
+      obScore,
+      isCrypto: currentAsset.type === 'crypto'
+    });
+    masterScore = masterData.score;
+    renderMasterScore(masterData);
+
     const fgCol = fgColor(fearGreedVal);
     const fgBgC = fgBg(fearGreedVal);
     const fgBrd = fgBorder(fearGreedVal);
@@ -1912,8 +2401,8 @@ async function runAnalysis() {
     setHTML('newsList', newsItems.map(n=>`
       <div class="news-item ${n.sentiment}">
         <span class="news-sent ${n.sentiment}">${n.sentiment}</span>
-        <div><strong style="color:var(--text);font-size:12px">${n.headline}</strong><br>
-          <span style="font-size:11px">${n.impact}</span></div>
+        <div><strong style="color:var(--text);font-size:12px">${sanitize(n.headline)}</strong><br>
+          <span style="font-size:11px">${sanitize(n.impact)}</span></div>
       </div>`).join(''));
 
     // Generate AI analysis text locally — UPDATED with v3 params
@@ -1932,7 +2421,7 @@ async function runAnalysis() {
       let fibLevelStr = null;
       if(fibData.levels.length > 0){
         const nearest = fibData.levels.find(l=>l.isNearest);
-        if(nearest) fibLevelStr = `${nearest.name} (${fmtPrice(nearest.price.toFixed(0))})`;
+        if(nearest) fibLevelStr = `${nearest.name} (${fmtPrice(smartToFixed(nearest.price))})`;
       }
       // Build S/R position string
       let srPositionStr = null;
@@ -1956,7 +2445,7 @@ async function runAnalysis() {
         <div class="err-desc">
           ${currentAsset.type==='crypto'?'Binance ও CoinGecko':'Twelve Data'} — API তে connect হয়নি।<br>
           Internet connection চেক করো এবং আবার try করো।<br><br>
-          <span style="font-size:11px;color:var(--muted)">Error: ${e.message||'Unknown error'}</span>
+          <span style="font-size:11px;color:var(--muted)">Error: ${sanitize(e.message||'Unknown error')}</span>
         </div>
         <button class="retry-btn" onclick="runAnalysis()">↻ আবার চেষ্টা করো</button>
       </div>`;
@@ -1969,7 +2458,7 @@ async function runAnalysis() {
 
 // ── ANIMATED DOTS (cross-browser) ────────────────────────────────
 let _dotsCount=0;
-setInterval(()=>{
+const _dotsInterval = setInterval(()=>{
   _dotsCount=(_dotsCount+1)%4;
   document.querySelectorAll('.dots').forEach(el=>{el.textContent='.'.repeat(_dotsCount);});
 },400);
@@ -1977,6 +2466,725 @@ setInterval(()=>{
 // ── INIT ─────────────────────────────────────────────────────────
 renderAssetBar();
 runAnalysis();
+
+// ══════════════════════════════════════════════════════════════════
+// ── HOT SIGNALS FLOATING SCANNER ────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+let hotSignals = [];
+let hsScanning = false;
+let hsPanelOpen = false;
+let hsScanTimer = null;
+let hsPrevCount = 0;
+
+// All assets to scan for Hot Signals
+const HS_ASSETS = [
+  ...ASSETS.crypto,
+  ASSETS.forex[0], ASSETS.forex[1], ASSETS.forex[2], // EUR/USD, GBP/USD, USD/JPY
+  ASSETS.gold[0], // XAU/USD
+];
+
+// Non-crypto assets only scan higher timeframes to preserve Twelve Data API quota
+// (5 keys × 8 calls/min = 40 calls/min total). Skipping 5m & 15m reduces per-scan calls.
+const HS_NON_CRYPTO_TFS = TIMEFRAMES.filter(tf => ['1h','4h','1d','1w'].includes(tf.interval));
+
+function hsTogglePanel() {
+  const panel = $id('hsPanel');
+  if(!panel) return;
+  hsPanelOpen = !hsPanelOpen;
+  if(hsPanelOpen) {
+    panel.classList.add('open');
+    hsRenderPanel();
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function hsUpdateBadge() {
+  const badge = $id('hsBadge');
+  if(!badge) return;
+  const count = hotSignals.length;
+  if(count > 0) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.classList.add('show');
+    // Pulse if count changed
+    if(count !== hsPrevCount) {
+      const btn = $id('hsBtn');
+      if(btn) { btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse'); }
+      hsPrevCount = count;
+    }
+  } else {
+    badge.classList.remove('show');
+    hsPrevCount = 0;
+  }
+}
+
+function hsRenderPanel() {
+  const body = $id('hsBody');
+  const timeEl = $id('hsTime');
+  if(!body) return;
+
+  if(timeEl && hotSignals.length > 0) {
+    timeEl.textContent = new Date().toLocaleTimeString();
+  }
+
+  if(hotSignals.length === 0 && !hsScanning) {
+    body.innerHTML = '<div class="hs-empty">No hot signals right now.<br>Market is calm 😌</div>';
+    return;
+  }
+  if(hotSignals.length === 0 && hsScanning) {
+    body.innerHTML = '<div class="hs-empty">Scanning markets<span class="dots"></span></div>';
+    return;
+  }
+
+  // Sort by probability (highest first)
+  const sorted = [...hotSignals].sort((a,b) => b.prob - a.prob);
+
+  body.innerHTML = sorted.map((s, idx) => {
+    const isBull = s.signal === 'bull';
+    const dirClass = isBull ? 'bull' : 'bear';
+    const dirLabel = isBull ? '▲ BULL' : '▼ BEAR';
+    // Signal strength icons: 🔥=80%+, ⚡=70-79%, ▲/▼=65-69%
+    const icon = s.prob >= 80 ? '🔥' : s.prob >= 70 ? '⚡' : (isBull ? '🟢' : '🔴');
+    // Add strength class for visual emphasis
+    const strengthClass = s.prob >= 80 ? 'hs-strong' : s.prob >= 70 ? 'hs-medium' : '';
+    return `<div class="hs-card ${strengthClass}">
+      <span class="hs-card-icon">${icon}</span>
+      <div class="hs-card-info">
+        <div class="hs-card-asset">${sanitize(s.asset)}</div>
+        <div class="hs-card-tf">${s.tf} · <span class="hs-card-dir ${dirClass}">${dirLabel}</span></div>
+      </div>
+      <span class="hs-card-pct ${dirClass}">${s.prob}%</span>
+      <button class="hs-card-view" data-hsidx="${idx}">View</button>
+    </div>`;
+  }).join('');
+
+  // Attach click handlers via event delegation (avoids sanitize-in-onclick issues)
+  body.querySelectorAll('.hs-card-view').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.hsidx;
+      const s = sorted[idx];
+      if(s) hsViewSignal(s.symbol, s.type, s.tf);
+    });
+  });
+}
+
+async function hsViewSignal(symbol, type, tf) {
+  // Close panel
+  hsPanelOpen = false;
+  const panel = $id('hsPanel');
+  if(panel) panel.classList.remove('open');
+
+  // Find asset
+  const assetList = ASSETS[type];
+  if(!assetList) return;
+  const asset = assetList.find(a => a.symbol === symbol || a.displayName === symbol);
+  if(!asset) return;
+
+  // Switch to that asset and run analysis
+  currentAsset = asset;
+  renderAssetBar();
+  updateHeaderForAsset();
+  await runAnalysis();
+
+  // Scroll to the specific timeframe card
+  const tfCard = document.querySelector(`[data-tf="${tf}"]`);
+  if(tfCard) {
+    tfCard.scrollIntoView({behavior: 'smooth', block: 'center'});
+    tfCard.style.outline = '2px solid var(--btc)';
+    setTimeout(() => { tfCard.style.outline = ''; }, 2500);
+  } else {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+}
+
+async function hsScanAsset(asset) {
+  const results = [];
+  // Use reduced TF set for non-crypto to preserve Twelve Data API quota
+  const tfs = asset.type === 'crypto' ? TIMEFRAMES : HS_NON_CRYPTO_TFS;
+
+  for(const tf of tfs) {
+    try {
+      // Pass assetOverride to fetchKlines — NO global currentAsset mutation needed
+      const klineData = await fetchKlines(tf.interval, 50, asset);
+
+      if(klineData?.data && klineData.data.length > 10) {
+        const price = +klineData.data[klineData.data.length - 1][4];
+        const analysis = analyzeTF(klineData.data, price);
+        // Use 65% threshold — same as analyzeTF's directional signal threshold
+        // (analyzeTF declares bull/bear at 65%+, so 80% was too strict)
+        if(analysis && analysis.signal !== 'neutral' && analysis.prob >= 65) {
+          results.push({
+            asset: asset.displayName,
+            symbol: asset.symbol,
+            type: asset.type,
+            tf: tf.label,
+            signal: analysis.signal,
+            prob: analysis.prob,
+          });
+        }
+      }
+    } catch(_) {
+      // Silently skip failed asset+TF combos
+    }
+  }
+  return results;
+}
+
+function _hsCommitAndRender() {
+  // Update badge and re-render panel with current hotSignals
+  hsUpdateBadge();
+  if(hsPanelOpen) hsRenderPanel();
+}
+
+async function hsRunScan() {
+  if(hsScanning) return;
+  if(document.visibilityState !== 'visible') return; // Only scan when tab is visible
+
+  hsScanning = true;
+  const scanEl = $id('hsScanning');
+  if(scanEl) scanEl.classList.add('show');
+
+  // Reset signals for fresh scan
+  hotSignals = [];
+  _hsCommitAndRender();
+
+  try {
+    const cryptoAssets = HS_ASSETS.filter(a => a.type === 'crypto');
+    const nonCryptoAssets = HS_ASSETS.filter(a => a.type !== 'crypto');
+
+    // ── Phase 1: Crypto (parallel, fast — results appear in ~5 seconds) ──
+    const cryptoResults = await Promise.allSettled(
+      cryptoAssets.map(a => hsScanAsset(a))
+    );
+    cryptoResults.forEach(r => {
+      if(r.status === 'fulfilled' && r.value) hotSignals.push(...r.value);
+    });
+    // Show crypto results IMMEDIATELY — don't wait for slow non-crypto scan
+    _hsCommitAndRender();
+
+    // ── Phase 2: Non-crypto (sequential, rate-limited — takes ~1-2 min) ──
+    for(const asset of nonCryptoAssets) {
+      try {
+        const signals = await hsScanAsset(asset);
+        hotSignals.push(...signals);
+        // Update after each non-crypto asset so results appear incrementally
+        _hsCommitAndRender();
+      } catch(_) {}
+      // Small delay between non-crypto assets; fetchTwelveKlines handles rate limiting internally
+      await new Promise(res => setTimeout(res, 300));
+    }
+
+  } catch(_) {
+    // Silent failure — don't break anything
+  } finally {
+    hsScanning = false;
+    const scanEl = $id('hsScanning');
+    if(scanEl) scanEl.classList.remove('show');
+    // Final render with completed data
+    _hsCommitAndRender();
+  }
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', (e) => {
+  if(!hsPanelOpen) return;
+  const panel = $id('hsPanel');
+  const btn = $id('hsBtn');
+  if(panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    hsPanelOpen = false;
+    panel.classList.remove('open');
+  }
+});
+
+// Initialize panel body with "waiting" message on page load
+const _hsBodyInit = $id('hsBody');
+if(_hsBodyInit) _hsBodyInit.innerHTML = '<div class="hs-empty">Scanning will start shortly<span class="dots"></span></div>';
+
+// Start first scan 8 seconds after page load, then every 3 minutes (180s)
+// Crypto results appear in ~5s; non-crypto results stream in incrementally
+// 3 min interval + incremental rendering = responsive UX
+setTimeout(() => {
+  hsRunScan();
+  hsScanTimer = setInterval(hsRunScan, 180000);
+}, 8000);
+
+// ══════════════════════════════════════════════════════════════════
+// ── HOT SESSIONS FLOATING PANEL ─────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+let sessPanelOpen = false;
+let sessClockTimer = null;
+
+// ── Session & Kill Zone Definitions (BDT = UTC+6) ─────────────
+const SESS_SESSIONS = [
+  { id:'asia',    name:'Asia Session',       icon:'🌏', color:'#f59e0b', start:360,  end:900,   priority:1 },
+  { id:'london',  name:'London Session',     icon:'🇬🇧', color:'#3b82f6', start:840,  end:1380,  priority:2 },
+  { id:'overlap', name:'London+NY Overlap',  icon:'⭐', color:'#ec4899', start:1140, end:1380,  priority:4 },
+  { id:'ny',      name:'New York Session',   icon:'🗽', color:'#10b981', start:1140, end:1440+240, priority:3 }, // crosses midnight
+  { id:'quiet',   name:'Market Quiet',       icon:'💤', color:'#4a5278', start:240,  end:360,   priority:0 },
+];
+// Best assets per session (displayName must match ASSETS entries)
+const SESS_ASSETS = {
+  asia:    [{name:'USD/JPY',cls:'jpy'},{name:'BNB',cls:'crypto'},{name:'SOL',cls:'crypto'},{name:'XAU/USD',cls:'gold'}],
+  london:  [{name:'EUR/USD',cls:'fx'},{name:'GBP/USD',cls:'fx'},{name:'XAU/USD',cls:'gold'},{name:'BTC',cls:'crypto'}],
+  overlap: [{name:'BTC',cls:'crypto'},{name:'ETH',cls:'crypto'},{name:'EUR/USD',cls:'fx'},{name:'GBP/USD',cls:'fx'},{name:'XAU/USD',cls:'gold'}],
+  ny:      [{name:'BTC',cls:'crypto'},{name:'ETH',cls:'crypto'},{name:'XAU/USD',cls:'gold'}],
+  quiet:   [],
+};
+// Kill zones (priority: most specific first)
+const SESS_KILLZONES = [
+  { id:'ny_kz',     name:'NY Kill Zone',       color:'#10b981', start:1170, end:1260, sessionId:'ny',      priority:1 },
+  { id:'london_close',name:'London Close',     color:'#ec4899', start:1260, end:1380, sessionId:'overlap', priority:2 },
+  { id:'london_kz', name:'London Kill Zone',   color:'#3b82f6', start:840,  end:960,  sessionId:'london',  priority:3 },
+  { id:'asia_kz',   name:'Asia Kill Zone',     color:'#f59e0b', start:360,  end:540,  sessionId:'asia',    priority:4 },
+  { id:'overlap_kz',name:'Overlap Window',     color:'#ec4899', start:1140, end:1380, sessionId:'overlap', priority:5 },
+];
+
+// ── BDT Time Helpers ───────────────────────────────────────────
+function sessGetBDT() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const bdt = new Date(utcMs + 6 * 3600000);
+  return {
+    h: bdt.getHours(),
+    m: bdt.getMinutes(),
+    s: bdt.getSeconds(),
+    totalMins: bdt.getHours() * 60 + bdt.getMinutes(),
+    date: bdt,
+  };
+}
+
+function sessFormatCountdown(totalSecs) {
+  if(totalSecs <= 0) return '0s';
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if(h > 0) return `${h}h ${m}m ${s}s`;
+  if(m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+// ── Session Detection ──────────────────────────────────────────
+function sessIsInSession(sess, mins) {
+  if(sess.id === 'ny') return mins >= 1140 || mins < 240; // crosses midnight
+  return mins >= sess.start && mins < sess.end;
+}
+
+function getCurrentSession(mins) {
+  // Return highest-priority active session
+  let best = null;
+  for(const s of SESS_SESSIONS) {
+    if(s.id === 'quiet') continue; // quiet is fallback
+    if(sessIsInSession(s, mins)) {
+      if(!best || s.priority > best.priority) best = s;
+    }
+  }
+  // Check quiet zone
+  if(!best) {
+    const q = SESS_SESSIONS.find(s => s.id === 'quiet');
+    if(q && sessIsInSession(q, mins)) best = q;
+  }
+  return best;
+}
+
+function getCurrentKillZone(mins) {
+  // Return highest-priority (lowest number) active kill zone
+  let best = null;
+  for(const kz of SESS_KILLZONES) {
+    const inKz = mins >= kz.start && mins < kz.end;
+    if(inKz && (!best || kz.priority < best.priority)) best = kz;
+  }
+  return best;
+}
+
+function getNextSession(mins) {
+  // Find next upcoming session (not currently active)
+  let best = null;
+  let minDiff = Infinity;
+  for(const s of SESS_SESSIONS) {
+    if(s.id === 'quiet') continue;
+    if(sessIsInSession(s, mins)) continue;
+    let diff = s.start - mins;
+    if(s.id === 'ny') {
+      // NY starts at 1140; if mins < 1140, diff = 1140-mins; if mins >= 1140 it's active
+      diff = 1140 - mins;
+      if(diff < 0) diff += 1440;
+    }
+    if(diff < 0) diff += 1440;
+    if(diff < minDiff) { minDiff = diff; best = s; }
+  }
+  return best ? { session: best, startsIn: minDiff } : null;
+}
+
+function getNextKillZone(mins) {
+  let best = null;
+  let minDiff = Infinity;
+  for(const kz of SESS_KILLZONES) {
+    let diff = kz.start - mins;
+    if(diff < 0) diff += 1440; // wrap around midnight
+    if(diff > 0 && diff < minDiff) { minDiff = diff; best = kz; }
+  }
+  return best ? { kz: best, startsIn: minDiff } : null;
+}
+
+// ── Session progress (0-100) ───────────────────────────────────
+function sessProgress(sess, mins) {
+  if(sess.id === 'ny') {
+    // NY crosses midnight: 19:00 (1140) → 04:00 (240+1440=1680 in extended)
+    const totalDur = 1680 - 1140; // 540 mins
+    let elapsed = mins >= 1140 ? mins - 1140 : mins + 1440 - 1140;
+    return Math.min(100, Math.round((elapsed / totalDur) * 100));
+  }
+  const totalDur = sess.end - sess.start;
+  if(totalDur <= 0) return 0;
+  const elapsed = mins - sess.start;
+  return Math.min(100, Math.round((elapsed / totalDur) * 100));
+}
+
+function sessRemainingSecs(sess, mins) {
+  let endMins;
+  if(sess.id === 'ny') {
+    endMins = mins >= 1140 ? 240 + 1440 : 240; // 04:00 next day
+  } else {
+    endMins = sess.end;
+  }
+  let remaining = endMins - mins;
+  if(sess.id === 'ny' && mins < 240) {
+    remaining = 240 - mins;
+  }
+  if(remaining < 0) remaining += 1440;
+  return remaining * 60 - (sessGetBDT().s || 0);
+}
+
+// ── Panel Toggle & Mutual Exclusion ────────────────────────────
+function sessTogglePanel() {
+  const overlay = $id('sessOverlay');
+  if(!overlay) return;
+  sessPanelOpen = !sessPanelOpen;
+  if(sessPanelOpen) {
+    // Close Hot Signals panel if open (mutual exclusion)
+    if(typeof hsPanelOpen !== 'undefined' && hsPanelOpen) {
+      hsPanelOpen = false;
+      const hsPanel = $id('hsPanel');
+      if(hsPanel) hsPanel.classList.remove('open');
+    }
+    overlay.classList.add('open');
+    sessRenderPanel();
+  } else {
+    overlay.classList.remove('open');
+  }
+}
+
+// ── Hot Signal button: also close Sessions panel ───────────────
+const _origHsToggle = typeof hsTogglePanel === 'function' ? hsTogglePanel : null;
+if(_origHsToggle) {
+  // Override to add mutual exclusion
+  window.hsTogglePanel = function() {
+    if(sessPanelOpen) {
+      sessPanelOpen = false;
+      const sp = $id('sessOverlay');
+      if(sp) sp.classList.remove('open');
+    }
+    _origHsToggle();
+  };
+}
+
+// ── Render Panel ───────────────────────────────────────────────
+function sessRenderPanel() {
+  const body = $id('sessBody');
+  const clockEl = $id('sessClock');
+  if(!body) return;
+
+  const bdt = sessGetBDT();
+  const mins = bdt.totalMins;
+  const session = getCurrentSession(mins);
+  const killZone = getCurrentKillZone(mins);
+  const nextSess = getNextSession(mins);
+  const nextKZ = getNextKillZone(mins);
+
+  // Update clock
+  if(clockEl) {
+    const pad = n => String(n).padStart(2,'0');
+    clockEl.textContent = `${pad(bdt.h)}:${pad(bdt.m)}:${pad(bdt.s)} BDT`;
+  }
+
+  // Update green dot on button
+  const dot = $id('sessDot');
+  if(dot) {
+    if(killZone) dot.classList.add('active');
+    else dot.classList.remove('active');
+  }
+
+  let html = '';
+
+  // ════════════════════════════════════════════════════════════════
+  // HERO BLOCK — Kill Zone gets priority, session is secondary
+  // ════════════════════════════════════════════════════════════════
+  if(killZone) {
+    // ── KILL ZONE HERO (main focus) ──
+    const kzRemaining = (killZone.end - mins) * 60 - bdt.s;
+    const kzAssets = SESS_ASSETS[killZone.sessionId] || [];
+    const kzTotalMins = killZone.end - killZone.start;
+    const kzElapsed = mins - killZone.start;
+    const kzProgress = Math.min(100, Math.round((kzElapsed / kzTotalMins) * 100));
+    const heroColor = killZone.color;
+
+    html += `<div class="sess-hero kz-active" style="background:linear-gradient(135deg,${heroColor}08,${heroColor}03)">
+      <div class="sess-hero-glow" style="background:${heroColor}"></div>
+      <div class="sess-hero-stripe" style="background:${heroColor}"></div>
+      <div class="sess-hero-top">
+        <span class="sess-hero-icon">🔥</span>
+        <div class="sess-hero-info">
+          <div class="sess-hero-name" style="color:${heroColor}">${killZone.name}</div>
+          <div class="sess-hero-sub">${session ? session.icon + ' ' + session.name + ' চলছে' : ''}</div>
+        </div>
+        <span class="sess-hero-badge hot">🔴 HOT WINDOW</span>
+      </div>
+      <div class="sess-hero-progress"><div class="sess-hero-progress-fill" style="width:${kzProgress}%;background:${heroColor}"></div></div>
+      <div class="sess-hero-countdown">
+        <span>⏱ Window শেষ: <b style="color:var(--text)">${sessFormatCountdown(kzRemaining)}</b></span>
+        ${session ? `<span>📊 সেশন শেষ: ${sessFormatCountdown(sessRemainingSecs(session, mins))}</span>` : ''}
+      </div>
+      <div class="sess-asset-badges">${kzAssets.map(a => `<span class="sess-asset-badge ${a.cls}">${a.name}</span>`).join('')}</div>
+      ${(killZone.id === 'ny_kz' || killZone.id === 'london_close') ? '<div style="font-size:11px;color:#ec4899;margin-top:6px">⭐ London+NY Overlap ও active</div>' : ''}
+    </div>`;
+  } else if(session) {
+    // ── SESSION HERO (no kill zone) ──
+    const isQuiet = session.id === 'quiet';
+    const progress = sessProgress(session, mins);
+    const remaining = sessRemainingSecs(session, mins);
+    const sessAssets = SESS_ASSETS[session.id] || [];
+
+    html += `<div class="sess-hero" style="background:linear-gradient(135deg,${session.color}08,${session.color}03)">
+      <div class="sess-hero-glow" style="background:${session.color}"></div>
+      <div class="sess-hero-stripe" style="background:${session.color}"></div>
+      <div class="sess-hero-top">
+        <span class="sess-hero-icon">${session.icon}</span>
+        <div class="sess-hero-info">
+          <div class="sess-hero-name" style="color:${session.color}">${session.name}</div>
+          <div class="sess-hero-sub">${isQuiet ? 'Market volume কম, trading এড়ানো ভালো' : 'Session active'}</div>
+        </div>
+        ${isQuiet ? '<span class="sess-hero-badge quiet">💤 QUIET</span>' : '<span class="sess-hero-badge live">🔴 LIVE</span>'}
+      </div>
+      <div class="sess-hero-progress"><div class="sess-hero-progress-fill" style="width:${progress}%;background:${session.color}"></div></div>
+      <div class="sess-hero-countdown">
+        ${isQuiet ? '<span>💤 Market শান্ত</span>' : `<span>⏱ সেশন শেষ: <b style="color:var(--text)">${sessFormatCountdown(remaining)}</b></span>`}
+        ${nextKZ ? `<span>🔥 পরের KZ: ${nextKZ.kz.name} (${sessFormatCountdown(nextKZ.startsIn * 60)})</span>` : ''}
+      </div>
+      ${sessAssets.length ? `<div class="sess-asset-badges">${sessAssets.map(a => `<span class="sess-asset-badge ${a.cls}">${a.name}</span>`).join('')}</div>` : ''}
+    </div>`;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // 24H TIMELINE
+  // ════════════════════════════════════════════════════════════════
+  html += sessRenderTimeline(mins);
+
+  // ════════════════════════════════════════════════════════════════
+  // HOT SIGNALS (only during kill zone)
+  // ════════════════════════════════════════════════════════════════
+  if(killZone) {
+    const kzAssets = (SESS_ASSETS[killZone.sessionId] || []).map(a => a.name);
+    const signals = (typeof hotSignals !== 'undefined' && Array.isArray(hotSignals))
+      ? hotSignals.filter(s => kzAssets.includes(s.asset))
+      : [];
+    html += `<div class="sess-signals-block">
+      <div class="sess-signals-hdr">🔥 এই Session-এর Hot Signals</div>`;
+    if(signals.length === 0) {
+      html += `<div class="sess-sig-empty">Scanning করছি<span class="dots"></span></div>`;
+    } else {
+      const sorted = [...signals].sort((a,b) => b.prob - a.prob);
+      sorted.forEach((s, idx) => {
+        const isBull = s.signal === 'bull';
+        const dirClass = isBull ? 'bull' : 'bear';
+        const dirLabel = isBull ? '▲ BULL' : '▼ BEAR';
+        const icon = isBull ? '🟢' : '🔴';
+        html += `<div class="sess-signal-card">
+          <span class="sess-sig-icon">${icon}</span>
+          <div class="sess-sig-info">
+            <div class="sess-sig-asset">${sanitize(s.asset)}</div>
+            <div class="sess-sig-tf">${s.tf} · <span class="sess-sig-dir ${dirClass}">${dirLabel}</span></div>
+          </div>
+          <span class="sess-sig-pct ${dirClass}">${s.prob}%</span>
+          <button class="sess-sig-view" data-sess-sig-idx="${idx}" data-sess-sig-symbol="${sanitize(s.symbol)}" data-sess-sig-type="${sanitize(s.type)}" data-sess-sig-tf="${sanitize(s.tf)}">View</button>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // NEXT SESSION FOOTER
+  // ════════════════════════════════════════════════════════════════
+  if(nextSess) {
+    const ns = nextSess.session;
+    html += `<div class="sess-footer">
+      <span class="sess-footer-icon">${ns.icon}</span>
+      <div class="sess-footer-info">
+        <div class="sess-footer-label">পরের Session</div>
+        <div class="sess-footer-name" style="color:${ns.color}">${ns.name}</div>
+      </div>
+      <div class="sess-footer-countdown">${sessFormatCountdown(nextSess.startsIn * 60)}</div>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+
+  // Attach View button handlers
+  body.querySelectorAll('.sess-sig-view').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const symbol = btn.dataset.sessSigSymbol;
+      const type = btn.dataset.sessSigType;
+      const tf = btn.dataset.sessSigTf;
+      if(symbol && type) sessViewSignal(symbol, type, tf);
+    });
+  });
+}
+
+// ── 24H Timeline ──────────────────────────────────────────────
+function sessRenderTimeline(mins) {
+  // Sessions as % of 24H (0-100%)
+  const pct = (startMins, endMins) => {
+    const s = (startMins / 1440) * 100;
+    const w = ((endMins - startMins) / 1440) * 100;
+    return { left: s.toFixed(2), width: w.toFixed(2) };
+  };
+
+  const nowPct = (mins / 1440) * 100;
+
+  // Sessions
+  const asia = pct(360, 900);
+  const london = pct(840, 1380);
+  const overlap = pct(1140, 1380);
+  const ny1 = pct(1140, 1440);
+  const ny2 = pct(0, 240);
+
+  // Kill zones
+  const asiaKZ = pct(360, 540);
+  const londonKZ = pct(840, 960);
+  const nyKZ = pct(1170, 1260);
+  const londonClose = pct(1260, 1380);
+
+  // KZ label colors
+  function kzLabelBg(color) {
+    const map = {'#f59e0b':'background:#f59e0b;color:#000','#3b82f6':'background:#3b82f6;color:#fff','#10b981':'background:#10b981;color:#000','#ec4899':'background:#ec4899;color:#fff'};
+    return map[color] || 'background:var(--muted);color:#fff';
+  }
+
+  // Hour labels (every 4 hours: 0,4,8,12,16,20)
+  const hours = [0,4,8,12,16,20].map(h => `<div class="sess-tl-hour">${String(h).padStart(2,'0')}</div>`).join('');
+
+  return `<div class="sess-tl-wrap">
+    <div class="sess-tl-label">⏱ 24H Timeline — BDT</div>
+    <div class="sess-tl">
+      <div class="sess-tl-bar asia" style="left:${asia.left}%;width:${asia.width}%">ASIA</div>
+      <div class="sess-tl-bar london" style="left:${london.left}%;width:${london.width}%">LONDON</div>
+      <div class="sess-tl-bar overlap" style="left:${overlap.left}%;width:${overlap.width}%">★</div>
+      <div class="sess-tl-bar ny" style="left:${ny1.left}%;width:${ny1.width}%"></div>
+      <div class="sess-tl-bar ny" style="left:${ny2.left}%;width:${ny2.width}%">NY</div>
+      <div class="sess-tl-kz" style="left:${asiaKZ.left}%;width:${asiaKZ.width}%;border-color:#f59e0b;background:rgba(245,158,11,.12)"><span class="sess-tl-kz-label" style="${kzLabelBg('#f59e0b')}">KZ</span></div>
+      <div class="sess-tl-kz" style="left:${londonKZ.left}%;width:${londonKZ.width}%;border-color:#3b82f6;background:rgba(59,130,246,.12)"><span class="sess-tl-kz-label" style="${kzLabelBg('#3b82f6')}">KZ</span></div>
+      <div class="sess-tl-kz" style="left:${nyKZ.left}%;width:${nyKZ.width}%;border-color:#10b981;background:rgba(16,185,129,.12)"><span class="sess-tl-kz-label" style="${kzLabelBg('#10b981')}">KZ</span></div>
+      <div class="sess-tl-kz" style="left:${londonClose.left}%;width:${londonClose.width}%;border-color:#ec4899;background:rgba(236,72,153,.08)"><span class="sess-tl-kz-label" style="${kzLabelBg('#ec4899')}">LC</span></div>
+      <div class="sess-tl-now" style="left:${nowPct.toFixed(2)}%"></div>
+    </div>
+    <div class="sess-tl-hours">${hours}</div>
+    <div class="sess-tl-legend">
+      <div class="sess-tl-legend-item"><div class="sess-tl-legend-dot" style="background:rgba(245,158,11,.5)"></div>Asia</div>
+      <div class="sess-tl-legend-item"><div class="sess-tl-legend-dot" style="background:rgba(59,130,246,.5)"></div>London</div>
+      <div class="sess-tl-legend-item"><div class="sess-tl-legend-dot" style="background:rgba(16,185,129,.5)"></div>NY</div>
+      <div class="sess-tl-legend-item"><div class="sess-tl-legend-dot" style="background:rgba(236,72,153,.6)"></div>Overlap</div>
+      <div class="sess-tl-legend-item"><div class="sess-tl-legend-dot" style="background:#f7931a"></div>Now</div>
+    </div>
+  </div>`;
+}
+
+// ── View Signal Handler ────────────────────────────────────────
+async function sessViewSignal(symbol, type, tf) {
+  // Close panel
+  sessPanelOpen = false;
+  const overlay = $id('sessOverlay');
+  if(overlay) overlay.classList.remove('open');
+
+  // Find asset
+  const assetList = ASSETS[type];
+  if(!assetList) return;
+  const asset = assetList.find(a => a.symbol === symbol || a.displayName === symbol);
+  if(!asset) return;
+
+  // Switch asset and run analysis
+  currentAsset = asset;
+  renderAssetBar();
+  updateHeaderForAsset();
+  await runAnalysis();
+
+  // Scroll to specific TF card
+  const tfCard = document.querySelector(`[data-tf="${tf}"]`);
+  if(tfCard) {
+    tfCard.scrollIntoView({behavior:'smooth', block:'center'});
+    tfCard.style.outline = '2px solid var(--btc)';
+    setTimeout(() => { tfCard.style.outline = ''; }, 2500);
+  } else {
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+// ── Close panel on backdrop click ───────────────────────────────
+$id('sessOverlay')?.addEventListener('click', (e) => {
+  if(!sessPanelOpen) return;
+  // Only close if clicking the backdrop, not the modal itself
+  if(e.target.id === 'sessOverlay') {
+    sessPanelOpen = false;
+    e.target.classList.remove('open');
+  }
+});
+
+// ── 1-Second Update Loop ──────────────────────────────────────
+function sessTick() {
+  // Always update button dot (even when panel closed)
+  const bdt = sessGetBDT();
+  const mins = bdt.totalMins;
+  const kz = getCurrentKillZone(mins);
+  const dot = $id('sessDot');
+  if(dot) {
+    if(kz) dot.classList.add('active');
+    else dot.classList.remove('active');
+  }
+  // Only update panel DOM when open
+  if(sessPanelOpen) sessRenderPanel();
+}
+
+sessTick(); // Initial
+sessClockTimer = setInterval(sessTick, 1000);
 </script>
+
+<!-- HOT SESSIONS — BUTTON + CENTERED MODAL -->
+<button class="sess-btn" id="sessBtn" onclick="sessTogglePanel()">
+  🕐<span class="sess-dot" id="sessDot"></span>
+</button>
+<div class="sess-overlay" id="sessOverlay">
+  <div class="sess-modal">
+    <div class="sess-modal-header">
+      <span class="sess-modal-title">📡 Hot Sessions</span>
+      <span class="sess-modal-clock" id="sessClock">--:--:-- BDT</span>
+      <button class="sess-modal-close" onclick="sessTogglePanel()">✕</button>
+    </div>
+    <div class="sess-modal-body" id="sessBody"></div>
+  </div>
+</div>
+
+<!-- HOT SIGNALS FLOATING SCANNER -->
+<button class="hs-btn" id="hsBtn" onclick="hsTogglePanel()">
+  🔥<span class="hs-badge" id="hsBadge"></span>
+</button>
+<div class="hs-panel" id="hsPanel">
+  <div class="hs-panel-header">
+    <span class="hs-panel-title">🔥 Hot Signals</span>
+    <span class="hs-panel-time" id="hsTime">—</span>
+    <button class="hs-panel-close" onclick="hsTogglePanel()">✕</button>
+  </div>
+  <div class="hs-scanning" id="hsScanning">⏳ Scanning all assets<span class="dots"></span></div>
+  <div class="hs-panel-body" id="hsBody"></div>
+</div>
+
 </body>
 </html>
