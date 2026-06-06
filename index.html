@@ -1343,33 +1343,42 @@ function calculateConfluence(results) {
       else { neutralCount++; }
     }
     // Directional score: 0=extreme bearish, 50=neutral, 100=extreme bullish
-    // This prevents showing 0% when all timeframes are neutral
-    const confluencePct = totalWeight>0 ? Math.round(50 + (bullWeight - bearWeight) / totalWeight * 50) : 50;
+    // Neutral TFs contribute as "50" (center), directional TFs push away from center.
+    // This way: all neutral = 50, all bear = 0, all bull = 100, mixed = proportional.
+    // Formula: 50 + (bullWeight - bearWeight) / totalWeight * 50
+    // BUT scale by directionality ratio so neutral-heavy markets stay near 50.
+    const dirWeight = bullWeight + bearWeight;
+    const directionalityRatio = totalWeight > 0 ? dirWeight / totalWeight : 0;
+    const rawDirection = dirWeight > 0 ? (bullWeight - bearWeight) / dirWeight : 0; // -1 to +1
+    const confluencePct = Math.round(50 + rawDirection * directionalityRatio * 50);
+    // Strength: how many TFs agree (0-100%)
+    const dominantCount = Math.max(bullCount, bearCount);
+    const confluenceStrength = Math.round(dominantCount / 6 * 100);
     const bullishPct = totalWeight>0 ? Math.round(bullWeight/totalWeight*100) : 0;
     const bearishPct = totalWeight>0 ? Math.round(bearWeight/totalWeight*100) : 0;
     const neutralPct = totalWeight>0 ? Math.round((totalWeight-bullWeight-bearWeight)/totalWeight*100) : 100;
     let label='', verdict='', verdictColor='';
     if(bullCount>=4 || bearCount>=4){
       const isBull = bullCount>=4;
-      label = `${isBull?'🟢':'🔴'} ${isBull?bullCount:bearCount}/6 Timeframes ${isBull?'Bullish':'Bearish'} — Direction: ${confluencePct}%`;
+      label = `${isBull?'🟢':'🔴'} ${isBull?bullCount:bearCount}/6 TF ${isBull?'Bullish':'Bearish'} — ${confluencePct}%`;
       verdict = '✅ Strong Confluence — High conviction trade';
       verdictColor = 'var(--green)';
     } else if(bullCount===3 || bearCount===3){
       const isBull = bullCount===3;
-      label = `🟡 3/6 Timeframes ${isBull?'Bullish':'Bearish'} — Direction: ${confluencePct}%`;
+      label = `🟡 3/6 TF ${isBull?'Bullish':'Bearish'} — ${confluencePct}%`;
       verdict = '⚠️ Moderate Confluence — Proceed with caution';
       verdictColor = 'var(--yellow)';
     } else if(neutralCount>=4){
-      label = `⚪ ${neutralCount}/6 Neutral — Direction: ${confluencePct}%`;
+      label = `⚪ ${neutralCount}/6 TF Neutral — ${confluencePct}%`;
       verdict = '⏸ No Clear Direction — Wait for confirmation';
       verdictColor = 'var(--muted)';
     } else {
-      label = `🔴 Split market — Direction: ${confluencePct}%`;
+      label = `🔴 Split market — ${confluencePct}%`;
       verdict = '❌ Conflicted Market — Avoid trading now';
       verdictColor = 'var(--red)';
     }
-    return {bullCount, bearCount, neutralCount, confluencePct, bullishPct, bearishPct, neutralPct, label, verdict, verdictColor};
-  } catch(_){ return {bullCount:0, bearCount:0, neutralCount:0, confluencePct:50, bullishPct:0, bearishPct:0, neutralPct:100, label:'N/A', verdict:'N/A', verdictColor:'var(--muted)'}; }
+    return {bullCount, bearCount, neutralCount, confluencePct, confluenceStrength, bullishPct, bearishPct, neutralPct, label, verdict, verdictColor};
+  } catch(_){ return {bullCount:0, bearCount:0, neutralCount:0, confluencePct:50, confluenceStrength:0, bullishPct:0, bearishPct:0, neutralPct:100, label:'N/A', verdict:'N/A', verdictColor:'var(--muted)'}; }
 }
 
 function renderConfluence(confluence) {
