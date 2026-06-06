@@ -937,6 +937,7 @@
     <div class="card">
       <div class="card-title">🏗️ Support, Resistance & Liquidity</div>
       <div id="srContent"></div>
+      <div id="smcContent"></div>
     </div>
     <div class="card">
       <div class="card-title">📊 Volume Analysis</div>
@@ -1453,7 +1454,8 @@ async function fetchKlines(interval, limit=100, assetOverride) {
       }
     } catch(_){}
     // Final fallback: generate synthetic klines from the last known price
-    const fallbackData = _generateFallbackKlines(currentPrice || 50000, interval);
+    const fallbackPrice = (assetOverride ? _tickerCache[assetOverride.symbol]?.lastPrice : currentPrice) || currentPrice || 50000;
+    const fallbackData = _generateFallbackKlines(+fallbackPrice || 50000, interval);
     return {data: fallbackData, source:'fallback'};
   } else {
     const result = await fetchTwelveKlines(a.twelveSymbol, interval, limit);
@@ -1806,20 +1808,22 @@ function detectBOSChoCh(candles, lookback=50) {
     const lastLow=swingLows[swingLows.length-1].price;
     const prevLow=swingLows[swingLows.length-2]?.price||lastLow;
     const bos=[], choch=[];
-    // Bullish BOS: price breaks above last swing high in uptrend
+    // Bullish BOS: price breaks above last swing high in uptrend (HH sequence)
     if(price>lastHigh&&lastHigh>prevHigh){
       bos.push({type:'bullish_bos', level:lastHigh, description:'Bullish BOS — HH broken'});
     }
-    // Bearish BOS: price breaks below last swing low in downtrend
+    // Bearish BOS: price breaks below last swing low in downtrend (LL sequence)
     if(price<lastLow&&lastLow<prevLow){
       bos.push({type:'bearish_bos', level:lastLow, description:'Bearish BOS — LL broken'});
     }
-    // Bullish ChoCh: price breaks above last swing high after making LL
-    if(price>lastHigh&&lastLow<prevLow){
+    // Bullish ChoCh: price breaks above last swing high after making LL (reversal)
+    // Only if NOT already a bullish BOS (avoid conflicting signals)
+    if(price>lastHigh&&lastLow<prevLow&&!bos.some(b=>b.type==='bullish_bos')){
       choch.push({type:'bullish_choch', level:lastHigh, description:'Bullish ChoCh — Reversal up'});
     }
-    // Bearish ChoCh: price breaks below last swing low after making HH
-    if(price<lastLow&&lastHigh>prevHigh){
+    // Bearish ChoCh: price breaks below last swing low after making HH (reversal)
+    // Only if NOT already a bearish BOS (avoid conflicting signals)
+    if(price<lastLow&&lastHigh>prevHigh&&!bos.some(b=>b.type==='bearish_bos')){
       choch.push({type:'bearish_choch', level:lastLow, description:'Bearish ChoCh — Reversal down'});
     }
     // Determine structure
@@ -1959,7 +1963,8 @@ function calcMFI(candles, period=14) {
       const mf = tp * candles[i].v;
       totalVol += candles[i].v;
       if(tp > prevTP) posFlow += mf;
-      else negFlow += mf;
+      else if(tp < prevTP) negFlow += mf;
+      // tp === prevTP: skip — zero-change money flow is neither positive nor negative
     }
     if(totalVol === 0) return null; // No volume data — return null instead of misleading value
     if(negFlow === 0) return {value:100, signal:'bear'};
@@ -1991,27 +1996,69 @@ function calcSAR(candles, step=0.02, max=0.2) {
   } catch(_){ return null; }
 }
 
-// Supertrend — trend-following indicator
+// Supertrend — proper running band tracking with carry-forward
 function calcSupertrend(candles, period=10, multiplier=3) {
   try {
-    if(candles.length < period + 1) return null;
-    const atrVals = [];
+    if(candles.length < period + 2) return null;
+    // Calculate ATR series using RMA (Wilder's smoothing)
+    const trs = [];
     for(let i = 1; i < candles.length; i++){
-      const tr = Math.max(candles[i].h - candles[i].l, Math.abs(candles[i].h - candles[i-1].c), Math.abs(candles[i].l - candles[i-1].c));
-      atrVals.push(tr);
+      trs.push(Math.max(candles[i].h - candles[i].l, Math.abs(candles[i].h - candles[i-1].c), Math.abs(candles[i].l - candles[i-1].c)));
     }
-    if(atrVals.length < period) return null;
-    let atrVal = atrVals.slice(0, period).reduce((a,b)=>a+b,0) / period;
-    for(let i = period; i < atrVals.length; i++){
-      atrVal = (atrVal * (period - 1) + atrVals[i]) / period;
+    if(trs.length < period) return null;
+    let atrVal = trs.slice(0, period).reduce((a,b)=>a+b,0) / period;
+    const atrSeries = [atrVal];
+    for(let i = period; i < trs.length; i++){
+      atrVal = (atrVal * (period - 1) + trs[i]) / period;
+      atrSeries.push(atrVal);
     }
-    const lastCandle = candles[candles.length - 1];
-    const hl2 = (lastCandle.h + lastCandle.l) / 2;
-    const upperBand = hl2 + multiplier * atrVal;
-    const lowerBand = hl2 - multiplier * atrVal;
-    const isBull = lastCandle.c > lowerBand;
-    const signal = lastCandle.c > upperBand ? 'bull' : lastCandle.c < lowerBand ? 'bear' : (isBull ? 'bull' : 'bear');
-    return {supertrend: isBull ? +lowerBand.toFixed(8) : +upperBand.toFixed(8), direction: isBull ? 'bull' : 'bear', signal};
+
+    // Walk forward computing Supertrend with proper band carry-forward
+    let prevUpperBand = 0, prevLowerBand = 0;
+    let directionIsBull = true; // start bullish
+
+    // Start from the candle where we first have ATR (candle index = period)
+    const si = period; // start candle index
+    let hl2 = (candles[si].h + candles[si].l) / 2;
+    prevUpperBand = hl2 + multiplier * atrSeries[si - 1];
+    prevLowerBand = hl2 - multiplier * atrSeries[si - 1];
+    directionIsBull = candles[si].c > prevLowerBand;
+
+    // Walk forward
+    for(let i = si + 1; i < candles.length; i++){
+      const atrIdx = i - 1;
+      if(atrIdx >= atrSeries.length) break;
+      hl2 = (candles[i].h + candles[i].l) / 2;
+
+      let newUpperBand = hl2 + multiplier * atrSeries[atrIdx];
+      let newLowerBand = hl2 - multiplier * atrSeries[atrIdx];
+
+      // Upper band can only move down (or reset if price broke above)
+      if(newUpperBand > prevUpperBand || candles[i-1].c > prevUpperBand) {
+        // Keep new higher upper band only if price broke above previous, else carry forward
+        if(candles[i-1].c > prevUpperBand) { /* reset: price broke above, use new */ }
+        else { newUpperBand = prevUpperBand; }
+      }
+      // Lower band can only move up (or reset if price broke below)
+      if(newLowerBand < prevLowerBand || candles[i-1].c < prevLowerBand) {
+        if(candles[i-1].c < prevLowerBand) { /* reset: price broke below, use new */ }
+        else { newLowerBand = prevLowerBand; }
+      }
+
+      // Determine direction change
+      if(directionIsBull) {
+        if(candles[i].c < newLowerBand) directionIsBull = false;
+      } else {
+        if(candles[i].c > newUpperBand) directionIsBull = true;
+      }
+
+      prevUpperBand = newUpperBand;
+      prevLowerBand = newLowerBand;
+    }
+
+    const supertrendVal = directionIsBull ? prevLowerBand : prevUpperBand;
+    const signal = directionIsBull ? 'bull' : 'bear';
+    return {supertrend: +supertrendVal.toFixed(8), direction: directionIsBull ? 'bull' : 'bear', signal};
   } catch(_){ return null; }
 }
 
@@ -2255,6 +2302,8 @@ function analyzeTF(rawData, price) {
 
   let bull=0,bear=0,total=0;
   const add=(cond,w=1)=>{total+=w; cond?bull+=w:bear+=w;};
+  // Three-way add: only counts directional signals; neutral is skipped entirely
+  const add3=(signal,w=1)=>{if(signal==='bull'){bull+=w;total+=w;}else if(signal==='bear'){bear+=w;total+=w;}};
 
   // Core indicator signals
   // RSI: only add weight when directional (dead zone 40-60 adds no weight — doesn't inflate denominator)
@@ -2318,13 +2367,13 @@ function analyzeTF(rawData, price) {
     else if(squeezeData.momentum==='bearish'){ bear+=1; total+=1; }
   }
 
-  // Phase 1 Remaining: New indicator scoring
-  if(cciData){ add(cciData.signal==='bull', 1); }
-  if(mfiData){ add(mfiData.signal==='bull', 1); }
-  if(sarData){ add(sarData.signal==='bull', 1); }
-  if(supertrendData){ add(supertrendData.signal==='bull', 1); }
-  if(cmfData){ add(cmfData.signal==='bull', 1); }
-  if(williamsRData){ add(williamsRData.signal==='bull', 1); }
+  // Phase 1 Remaining: New indicator scoring (add3 skips neutral — doesn't inflate denominator)
+  if(cciData){ add3(cciData.signal, 1); }
+  if(mfiData){ add3(mfiData.signal, 1); }
+  if(sarData){ add3(sarData.signal, 1); }
+  if(supertrendData){ add3(supertrendData.signal, 1); }
+  if(cmfData){ add3(cmfData.signal, 1); }
+  if(williamsRData){ add3(williamsRData.signal, 1); }
   if(liqSweepData && liqSweepData.recentSweep){
     add(liqSweepData.recentSweep.type==='bullish_sweep', 1);
   }
@@ -2796,11 +2845,13 @@ function analyzeVolume(candles) {
     const spike = curVol > avgVol * 2;
 
     // Buy/Sell pressure from last 10 candles
+    // Neutral candles (close === open) split volume 50/50 instead of counting as sell
     const last10 = candles.slice(-10);
     let buyVol=0, sellVol=0;
     last10.forEach(c=>{
       if(c.c > c.o) buyVol += c.v;
-      else sellVol += c.v;
+      else if(c.c < c.o) sellVol += c.v;
+      else { buyVol += c.v * 0.5; sellVol += c.v * 0.5; } // Neutral candle: split evenly
     });
     const totalVol = buyVol+sellVol;
     const buyPct = totalVol>0 ? Math.round(buyVol/totalVol*100) : 50;
@@ -3490,9 +3541,9 @@ function renderSMCPanel(obData, fvgData, bosChData, pivotData, price) {
       if(pivotData.nearestBelow) html += `<div class="ind-row"><span class="ind-name" style="color:var(--green)">S (${pivotData.nearestBelow.label})</span><div class="ind-right"><span class="ind-val">${fmtPrice(smartToFixed(pivotData.nearestBelow.price))}</span></div></div>`;
       html += '</div>';
     }
-    // Append to S/R content area
-    const srEl = $id('srContent');
-    if(srEl && html) srEl.innerHTML += html;
+    // Append to SMC content area (separate from S/R zones)
+    const smcEl = $id('smcContent');
+    if(smcEl && html) smcEl.innerHTML = html;
   } catch(_){}
 }
 
@@ -5056,7 +5107,7 @@ function calcBayesianSignal(allScores, weights, regime) {
   }
 }
 
-function detectAnomalies(candles, volumeData) {
+function detectAnomalies(candles) {
   try {
     if(!candles || candles.length < 20) {
       return { volumeAnomaly: 'normal', priceAnomaly: 'normal', momentumAnomaly: 'normal', anomalyScore: 0 };
@@ -5095,18 +5146,17 @@ function detectAnomalies(candles, volumeData) {
     if(retZ > 2.5) priceAnomaly = 'alert';
     else if(retZ > 1.8) priceAnomaly = 'warning';
 
-    // Momentum anomaly (RSI-like deviation)
+    // Momentum anomaly (RSI-like deviation) — use RMA for consistency with main RSI
     const changes = [];
     for(let i = 1; i < n; i++) changes.push(closes[i] - closes[i-1]);
     const gains = changes.map(c => c > 0 ? c : 0);
     const losses = changes.map(c => c < 0 ? -c : 0);
     const period = Math.min(14, changes.length);
-    const gSlice = gains.slice(-period);
-    const lSlice = losses.slice(-period);
-    const avgGain = gSlice.length > 0 ? gSlice.reduce((a,b)=>a+b,0) / gSlice.length : 0;
-    const avgLoss = lSlice.length > 0 ? lSlice.reduce((a,b)=>a+b,0) / lSlice.length : 0.001;
-    const rs = avgLoss > 0 ? avgGain / avgLoss : 100;
-    const rsi = 100 - (100 / (1 + rs));
+    if(gains.length < period) return { volumeAnomaly, priceAnomaly, momentumAnomaly: 'normal', anomalyScore: 0 };
+    // Use RMA (Wilder's smoothing) to match main RSI function
+    const gRMA = rma(gains, period);
+    const lRMA = rma(losses, period);
+    const rsi = (!gRMA || !lRMA || lRMA === 0) ? 50 : 100 - (100 / (1 + gRMA / lRMA));
 
     // RSI anomaly: extreme RSI values
     let momentumAnomaly = 'normal';
@@ -5239,14 +5289,20 @@ function detectMarketPhase(candles, volumeData) {
     for(let i = 1; i < n; i++) returns.push((closes[i] - closes[i-1]) / closes[i-1]);
     const vol = Math.sqrt(returns.reduce((a,b)=>a+b*b,0) / returns.length) * Math.sqrt(365);
 
-    // RSI for momentum
+    // RSI for momentum — use RMA for consistency with main RSI function
     const changes = [];
     for(let i = Math.max(1, n - 15); i < n; i++) changes.push(closes[i] - closes[i-1]);
-    const gains = changes.filter(c => c > 0);
-    const losses = changes.filter(c => c < 0).map(c => -c);
-    const avgGain = gains.length > 0 ? gains.reduce((a,b)=>a+b,0) / Math.max(gains.length, 1) : 0;
-    const avgLoss = losses.length > 0 ? losses.reduce((a,b)=>a+b,0) / Math.max(losses.length, 1) : 0.001;
-    const rsi = 100 - (100 / (1 + avgGain / avgLoss));
+    const mGains = changes.filter(c => c > 0);
+    const mLosses = changes.filter(c => c < 0).map(c => -c);
+    const rsiPeriod = Math.min(14, changes.length);
+    let rsi;
+    if(changes.length >= rsiPeriod) {
+      const gRMA = rma(changes.map(c => c > 0 ? c : 0), rsiPeriod);
+      const lRMA = rma(changes.map(c => c < 0 ? -c : 0), rsiPeriod);
+      rsi = (!gRMA || !lRMA || lRMA === 0) ? 50 : 100 - (100 / (1 + gRMA / lRMA));
+    } else {
+      rsi = 50;
+    }
 
     // Phase detection logic
     let phase, confidence, description;
@@ -5369,7 +5425,7 @@ function calcMTFConfluence(allIndicatorData, regime) {
     if(!tfResults) return { confluencePct: 50, direction: 'neutral', label: 'N/A' };
 
     let bullW = 0, bearW = 0, totalW = 0;
-    const tfWeights = { '5M': 0.5, '15M': 0.8, '1H': 1.0, '4H': 1.2, '1D': 1.5, '1W': 1.8 };
+    const tfWeights = { '5m': 0.5, '15m': 0.8, '1H': 1.0, '4H': 1.2, '1D': 1.5, '1W': 1.8 };
 
     for(const [tf, r] of Object.entries(tfResults)) {
       const w = tfWeights[tf] || 1.0;
@@ -5924,14 +5980,14 @@ function selectAsset(symbol, type) {
 
   // Immediately clear all dynamic content areas so stale BTC/old data
   // is not visible while the new asset's data loads
-  const clearIds = ['tfGrid','confluenceBar','bestRecContent','tpslContent',
+  const clearIds = ['tfGrid','confluenceBar','bestRec','tpslPanel',
     'indicatorsList','volumeContent','srContent','fibContent',
-    'trendlineContent','patternContent','divergenceContent',
-    'orderFlowContent','harmonicsContent','liqSweepContent',
+    'trendlineContent','patternBadges','divergenceSignals',
+    'orderFlowContent','harmonicsContent',
     'depthContent','sentimentTags','newsList','aiAnalysis',
-    'onchainContent','aiEngineContent','masterScoreContent',
-    'gaugeWrap','sentBars','btMetrics','btEquityWrap','btTradeList',
-    'btValidationContent','macroContent','crossAssetContent'];
+    'onchainContent','aiEngineContent','masterScoreCard',
+    'gaugeWrap','sentBars','backtestContent','validationContent',
+    'macroContent','crossAssetContent'];
   for(const id of clearIds) {
     const el = $id(id);
     if(el) el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px">Loading<span class="dots"></span></div>';
@@ -6013,7 +6069,7 @@ function getMarketStatus() {
       return { isOpen: false, label: 'Closed', detail: formatMinsAway(hrsToOpen), nextEvent: 'Sun 22:00 UTC' };
     }
     if(utcDay === 5 && utcTime >= 22 * 60) { // Friday after 22:00
-      const hrsToOpen = 24 - utcHour + 48 + 22;
+      const hrsToOpen = 24 - utcHour + 24 + 22; // Sat full day + Sun hrs
       return { isOpen: false, label: 'Closed', detail: formatHoursAway(hrsToOpen), nextEvent: 'Sun 22:00 UTC' };
     }
     // Otherwise open
@@ -6032,7 +6088,7 @@ function getMarketStatus() {
       return { isOpen: false, label: 'Closed', detail: formatMinsAway(minsToOpen), nextEvent: 'Sun 23:00 UTC' };
     }
     if(utcDay === 5 && utcTime >= 22 * 60) { // Friday after 22:00
-      const hrsToOpen = 24 - utcHour + 48 + 23;
+      const hrsToOpen = 24 - utcHour + 24 + 23; // Sat full day + Sun hrs
       return { isOpen: false, label: 'Closed', detail: formatHoursAway(hrsToOpen), nextEvent: 'Sun 23:00 UTC' };
     }
     // Daily break check: 22:00-23:00 UTC (Mon-Fri early morning)
@@ -6106,12 +6162,11 @@ async function runAnalysis() {
   // Helper: abort if asset changed during this analysis
   const aborted = () => (analysisGeneration !== myGeneration);
 
-  // Helper: silently abort — hide overlay, release isRunning, but don't show errors
+  // Helper: silently abort — don't release isRunning (the new analysis already claimed it)
+  // The new analysis that incremented generation already set isRunning=true,
+  // so we must NOT set it to false here (that would allow a 3rd concurrent analysis).
   const silentAbort = () => {
     if(aborted()) {
-      // Don't hide overlay — the new analysis will take over the overlay
-      // Just release the isRunning flag so the new analysis can proceed
-      isRunning = false;
       return true;
     }
     return false;
@@ -6163,7 +6218,10 @@ async function runAnalysis() {
         startCountdown();
       } catch(_){}
     }
-    isRunning = false;
+    // Only release isRunning if we are the active analysis
+    if(analysisGeneration === myGeneration) {
+      isRunning = false;
+    }
     const btn2=$id('refreshBtn'), icon2=$id('refreshIcon');
     if(btn2) btn2.disabled=false;
     if(icon2){icon2.className='';icon2.textContent='↻';}
@@ -6415,8 +6473,11 @@ async function runAnalysis() {
     let volumeScore = volData.buyPct;
     if(volData.spike) volumeScore = Math.min(100, volumeScore + 10);
     let divergenceScore = 50;
-    if(rsiDiv.type==='bullish' || macdDiv.type==='bullish') divergenceScore = 80;
-    else if(rsiDiv.type==='bearish' || macdDiv.type==='bearish') divergenceScore = 20;
+    if(rsiDiv.type==='bullish' && macdDiv.type==='bullish') divergenceScore = 85;
+    else if(rsiDiv.type==='bearish' && macdDiv.type==='bearish') divergenceScore = 15;
+    else if(rsiDiv.type==='bullish' || macdDiv.type==='bullish') divergenceScore = 65;
+    else if(rsiDiv.type==='bearish' || macdDiv.type==='bearish') divergenceScore = 35;
+    // conflicting or none: stays 50
     let srScore = 50;
     if(srZones.support.length>0 && srZones.resistance.length>0){
       const nearestSup = srZones.support[0]?.price || currentPrice;
@@ -6915,7 +6976,11 @@ async function runAnalysis() {
         <button class="retry-btn" onclick="runAnalysis()">↻ আবার চেষ্টা করো</button>
       </div>`;
   } finally {
-    isRunning = false;
+    // Only release isRunning if we are the active analysis (generation matches)
+    // If generation changed, a newer analysis is running and owns isRunning
+    if(analysisGeneration === myGeneration) {
+      isRunning = false;
+    }
     if(btn) btn.disabled=false;
     if(icon){icon.className='';icon.textContent='↻';}
   }
@@ -7067,17 +7132,33 @@ async function hsViewSignal(symbol, type, tf) {
   const assetType = asset.type;
   selectAsset(symbol, assetType);
 
-  // Wait a moment for analysis to start, then scroll after data loads
-  setTimeout(() => {
-    const tfCard = document.querySelector(`[data-tf="${tf}"]`);
-    if(tfCard) {
-      tfCard.scrollIntoView({behavior: 'smooth', block: 'center'});
-      tfCard.style.outline = '2px solid var(--btc)';
-      setTimeout(() => { tfCard.style.outline = ''; }, 2500);
-    } else {
-      window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-  }, 3000); // Wait 3s for analysis to complete
+  // Wait for analysis to complete before scrolling (poll for TF card to appear)
+  // Checks every 500ms, up to 15s max
+  let attempts = 0;
+  const maxAttempts = 30;
+  const waitForCard = () => new Promise(resolve => {
+    const check = () => {
+      attempts++;
+      const tfCard = document.querySelector(`[data-tf="${tf}"]`);
+      if(tfCard && tfCard.querySelector('.tf-signal')) {
+        resolve(tfCard);
+      } else if(attempts < maxAttempts) {
+        setTimeout(check, 500);
+      } else {
+        resolve(null);
+      }
+    };
+    setTimeout(check, 800);
+  });
+
+  const tfCard = await waitForCard();
+  if(tfCard) {
+    tfCard.scrollIntoView({behavior: 'smooth', block: 'center'});
+    tfCard.style.outline = '2px solid var(--btc)';
+    setTimeout(() => { tfCard.style.outline = ''; }, 2500);
+  } else {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
 }
 
 // ── Hot Signal: Read from dashboardCache (NO separate API calls) ──
@@ -7545,8 +7626,27 @@ async function sessViewSignal(symbol, type, tf) {
   const assetType = asset.type;
   selectAsset(symbol, assetType);
 
-  // Scroll to specific TF card
-  const tfCard = document.querySelector(`[data-tf="${tf}"]`);
+  // Wait for analysis to complete before scrolling (poll for TF card to appear)
+  // Uses exponential backoff: check every 500ms, up to 15s max
+  let attempts = 0;
+  const maxAttempts = 30; // 30 × 500ms = 15s max wait
+  const waitForCard = () => new Promise(resolve => {
+    const check = () => {
+      attempts++;
+      const tfCard = document.querySelector(`[data-tf="${tf}"]`);
+      if(tfCard && tfCard.querySelector('.tf-signal')) {
+        // Card exists and has rendered signal content
+        resolve(tfCard);
+      } else if(attempts < maxAttempts) {
+        setTimeout(check, 500);
+      } else {
+        resolve(null); // Timeout — give up
+      }
+    };
+    setTimeout(check, 800); // Initial delay for analysis to start
+  });
+
+  const tfCard = await waitForCard();
   if(tfCard) {
     tfCard.scrollIntoView({behavior:'smooth', block:'center'});
     tfCard.style.outline = '2px solid var(--btc)';
