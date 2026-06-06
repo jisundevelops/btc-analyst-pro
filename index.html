@@ -739,7 +739,9 @@ async function fetchTwelveKlines(twelveSymbol, interval, limit=100) {
       new Date(v.datetime).getTime(),
       +v.open, +v.high, +v.low, +v.close,
       v.volume ? +v.volume : 0
-    ]);
+    ]).sort((a, b) => a[0] - b[0]); // Twelve Data returns newest-first; sort oldest-first for correct indicator math
+    // Safety: verify data is oldest-first (timestamp[0] < timestamp[last])
+    if(mapped.length > 1 && mapped[0][0] > mapped[mapped.length-1][0]) mapped.reverse();
     return {data: mapped, source: 'twelvedata'};
   }
   throw new Error('Twelve Data klines failed: ' + (d?.message || 'empty'));
@@ -942,15 +944,32 @@ function analyzeTF(rawData, price) {
         vw=candles.slice(-20).some(c=>c.v>0)?vwap(candles.slice(-20)):null;
 
   let bull=0,bear=0,total=0;
+  // add(): only counts weight when indicator is available and directional
   const add=(cond,w=1)=>{total+=w; cond?bull+=w:bear+=w;};
 
-  if(ri!=null){total+=2;ri<30?bull+=2:ri<45?bull+=1:ri>70?bear+=2:ri>55?bear+=1:null;}
+  // RSI: only add weight when RSI is directional (not in dead zone 40-60)
+  if(ri!=null){
+    if(ri<30){total+=2;bull+=2;}
+    else if(ri<40){total+=2;bull+=1;}     // expanded bull zone
+    else if(ri>70){total+=2;bear+=2;}
+    else if(ri>60){total+=2;bear+=1;}     // expanded bear zone
+    // 40-60 = true neutral, no weight added (doesn't inflate denominator)
+  }
   if(s20) add(price>s20);
   if(s50) add(price>s50);
   if(e21) add(price>e21);
-  if(bband){total+=2;const bbRange=bband.upper-bband.lower;const pos=bbRange!==0?(price-bband.lower)/bbRange:0.5;pos<0.2?bull+=2:pos<0.4?bull+=1:pos>0.8?bear+=2:pos>0.6?bear+=1:null;}
+  // Bollinger Bands: only add weight when position is directional
+  if(bband){
+    const bbRange=bband.upper-bband.lower;
+    const pos=bbRange!==0?(price-bband.lower)/bbRange:0.5;
+    if(pos<0.2){total+=2;bull+=2;}
+    else if(pos<0.35){total+=2;bull+=1;}  // expanded bull zone
+    else if(pos>0.8){total+=2;bear+=2;}
+    else if(pos>0.65){total+=2;bear+=1;}  // expanded bear zone
+    // 0.35-0.65 = true neutral, no weight added
+  }
   if(st!=null) add(st<50);
-  if(vw && vw>0) add(price>vw);
+  if(vw && vw>0) add(price>vw); // only counts when volume available (forex/gold vol=0 → skipped, no penalty)
   if(mc) add(mc.positive);
   const l5=closes.slice(-5); add(l5[l5.length-1]>l5[0]);
 
