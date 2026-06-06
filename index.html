@@ -2821,18 +2821,23 @@ function analyzeVolume(candles) {
         priceLows.push({price:lastN[i].l, vol:lastN[i].v});
       }
     }
+    let bearishVolDiv = false, bullishVolDiv = false;
     if(priceHighs.length>=2){
       const last2H = priceHighs.slice(-2);
       if(last2H[1].price > last2H[0].price && last2H[1].vol < last2H[0].vol){
-        divergence = '⚠️ Bearish Volume Divergence';
+        bearishVolDiv = true;
       }
     }
     if(priceLows.length>=2){
       const last2L = priceLows.slice(-2);
       if(last2L[1].price < last2L[0].price && last2L[1].vol < last2L[0].vol){
-        divergence = '✅ Bullish Volume Divergence (Capitulation)';
+        bullishVolDiv = true;
       }
     }
+    // Conflicting divergence takes priority — signals are mixed, caution needed
+    if(bearishVolDiv && bullishVolDiv) divergence = '⚠️ Conflicting Volume Divergence (Mixed Signals)';
+    else if(bearishVolDiv) divergence = '⚠️ Bearish Volume Divergence';
+    else if(bullishVolDiv) divergence = '✅ Bullish Volume Divergence (Capitulation)';
 
     return {spike, buyPressure:buyVol, sellPressure:sellVol, buyPct, sellPct, divergence, avgVol};
   } catch(_){ return {spike:false, buyPressure:0, sellPressure:0, buyPct:50, sellPct:50, divergence:'N/A', avgVol:0}; }
