@@ -2316,7 +2316,8 @@ function analyzeTF(rawData, price) {
         liqSweepData=detectLiquiditySweep(candles);
 
   let bull=0,bear=0,total=0;
-  const add=(cond,w=1)=>{total+=w; cond?bull+=w:bear+=w;};
+  // Legacy add() removed — all indicators now use add3() for 3-way logic
+  // (bull/bear/neutral). This prevents false=bearish bias.
   // Three-way add: only counts directional signals; neutral is skipped entirely
   const add3=(signal,w=1)=>{if(signal==='bull'){bull+=w;total+=w;}else if(signal==='bear'){bear+=w;total+=w;}};
 
@@ -2329,9 +2330,12 @@ function analyzeTF(rawData, price) {
     else if(ri>60){total+=2;bear+=1;}     // expanded bear zone
     // 40-60 = true neutral, no weight added
   }
-  if(s20) add(price>s20);
-  if(s50) add(price>s50);
-  if(e21) add(price>e21);
+  // Moving averages: use add3 with near-equal = neutral (within 0.1% of price)
+  // Previously add(price>s20) treated price==s20 as bearish — that was a bias
+  const nearPct = 0.001; // 0.1% threshold for "near" = neutral
+  if(s20){ const rel=Math.abs(price-s20)/s20; if(rel<nearPct){/* neutral */} else add3(price>s20?'bull':'bear'); }
+  if(s50){ const rel=Math.abs(price-s50)/s50; if(rel<nearPct){/* neutral */} else add3(price>s50?'bull':'bear'); }
+  if(e21){ const rel=Math.abs(price-e21)/e21; if(rel<nearPct){/* neutral */} else add3(price>e21?'bull':'bear'); }
   // Bollinger Bands: only add weight when directional (dead zone 0.35-0.65 adds no weight)
   if(bband){
     const bbRange=bband.upper-bband.lower;const pos=bbRange!==0?(price-bband.lower)/bbRange:0.5;
@@ -2349,19 +2353,21 @@ function analyzeTF(rawData, price) {
     else if(stK>70){total+=2;bear+=1;}   // approaching overbought
     // 30-70 = neutral zone, no weight added
   }
-  if(stK!=null && stD!=null){ add(stK>stD, 1); }
-  if(vw && vw>0) add(price>vw);
-  if(mc) add(mc.positive);
+  if(stK!=null && stD!=null){ add3(stK>stD?'bull':'bear', 1); }
+  if(vw && vw>0){ const rel=Math.abs(price-vw)/vw; if(rel<nearPct){/* neutral */} else add3(price>vw?'bull':'bear'); }
+  if(mc) add3(mc.positive?'bull':'bear');
   if(mc && mc.histogram && mc.histogram.length>=2){
     const h=mc.histogram;
-    add(h[h.length-1]>h[h.length-2], 1);
+    add3(h[h.length-1]>h[h.length-2]?'bull':'bear', 1);
   }
-  const l5=closes.slice(-5); add(l5[l5.length-1]>l5[0]);
+  const l5=closes.slice(-5); add3(l5[l5.length-1]>l5[0]?'bull':'bear');
 
   // Advanced indicator signals (weight: 2 each for ADX + Ichimoku)
-  // ADX: +DI > -DI = bullish
+  // ADX: +DI > -DI = bullish; near-equal = neutral (no directional bias)
   if(adxData){
-    add(adxData.plusDI>adxData.minusDI, 2);
+    const diDiff = Math.abs(adxData.plusDI - adxData.minusDI);
+    if(diDiff < 2) { /* DI lines too close — neutral */ }
+    else add3(adxData.plusDI>adxData.minusDI?'bull':'bear', 2);
     // In ranging market, reduce signal confidence
     if(adxData.regime==='ranging'||adxData.regime==='weak'){ total+=1; bull+=0.5; bear+=0.5; }
   }
@@ -2373,7 +2379,7 @@ function analyzeTF(rawData, price) {
   }
   // OBV: trend confirmation
   if(obvData){
-    add(obvData.trend==='bullish', 1);
+    add3(obvData.trend==='bullish'?'bull':obvData.trend==='bearish'?'bear':'neutral', 1);
     if(obvData.divergence) { bear+=1; total+=1; } // bearish divergence
   }
   // Squeeze: potential breakout in momentum direction
@@ -2390,7 +2396,7 @@ function analyzeTF(rawData, price) {
   if(cmfData){ add3(cmfData.signal, 1); }
   if(williamsRData){ add3(williamsRData.signal, 1); }
   if(liqSweepData && liqSweepData.recentSweep){
-    add(liqSweepData.recentSweep.type==='bullish_sweep', 1);
+    add3(liqSweepData.recentSweep.type==='bullish_sweep'?'bull':'bear', 1);
   }
 
   // Market Regime Detection
@@ -4224,10 +4230,12 @@ async function runBacktest(tfLabel, signalThreshold) {
   btRunning = true;
   signalThreshold = signalThreshold || 60; // Match analyzeTF threshold (60%)
 
-  // For forex/gold, use a lower effective threshold since volume-dependent
-  // indicators (MFI, CMF, OBV, VWAP) are unavailable, reducing signal strength
+  // For forex/gold, adjust threshold since volume-dependent
+  // indicators (MFI, CMF, OBV, VWAP) are unavailable, reducing signal strength.
+  // Instead of capping at 60% (which silently overrides user choice), reduce by 5%
+  // and store the adjustment so the UI can show the user what happened.
   const isNonCrypto = currentAsset.type === 'forex' || currentAsset.type === 'gold';
-  const effectiveThreshold = isNonCrypto ? Math.min(signalThreshold, 60) : signalThreshold;
+  const effectiveThreshold = isNonCrypto ? Math.max(55, signalThreshold - 5) : signalThreshold;
 
   try {
     // Find the timeframe
@@ -4372,18 +4380,23 @@ async function runBacktest(tfLabel, signalThreshold) {
             const riskAmount = cash * riskPct;
             const slDistance = atrVal * 1.0;
 
+            // Position sizing: risk 2% of cash, cap max leverage at 2x
+            // size = riskAmount / (slDistance/price), but never more than 2× cash
+            const maxSize = cash * 2; // max 2x leverage
             if(analysis.signal === 'bull') {
               const entry = price;
               const tp = price + atrVal * 1.5;
               const sl = price - slDistance;
-              const size = slDistance > 0 ? riskAmount / (slDistance / price) : riskAmount;
-              position = { direction: 'bull', entry, tp, sl, size: Math.min(size, cash), entryBar: i };
+              const rawSize = slDistance > 0 ? riskAmount / (slDistance / price) : riskAmount;
+              const size = Math.min(rawSize, maxSize, cash);
+              position = { direction: 'bull', entry, tp, sl, size, entryBar: i };
             } else if(analysis.signal === 'bear') {
               const entry = price;
               const tp = price - atrVal * 1.5;
               const sl = price + slDistance;
-              const size = slDistance > 0 ? riskAmount / (slDistance / price) : riskAmount;
-              position = { direction: 'bear', entry, tp, sl, size: Math.min(size, cash), entryBar: i };
+              const rawSize = slDistance > 0 ? riskAmount / (slDistance / price) : riskAmount;
+              const size = Math.min(rawSize, maxSize, cash);
+              position = { direction: 'bear', entry, tp, sl, size, entryBar: i };
             }
           }
         } catch(_) {
@@ -5467,25 +5480,37 @@ function calcAIEngine(allIndicatorData, btResults, regime, assetType) {
 
 function calcMTFConfluence(allIndicatorData, regime) {
   try {
-    // Simple multi-TF confluence from existing results
+    // Multi-TF confluence accounting for neutral timeframes
+    // Neutral TFs dilute the confluence score (they don't contribute to either side)
     const { tfResults } = allIndicatorData;
     if(!tfResults) return { confluencePct: 50, direction: 'neutral', label: 'N/A' };
 
-    let bullW = 0, bearW = 0, totalW = 0;
+    let bullW = 0, bearW = 0, neutralW = 0, totalW = 0;
     const tfWeights = { '5m': 0.5, '15m': 0.8, '1H': 1.0, '4H': 1.2, '1D': 1.5, '1W': 1.8 };
 
     for(const [tf, r] of Object.entries(tfResults)) {
       const w = tfWeights[tf] || 1.0;
       if(r?.signal === 'bull') bullW += r.prob * w;
       else if(r?.signal === 'bear') bearW += r.prob * w;
+      else neutralW += w; // neutral TFs get weight but no directional score
       totalW += w;
     }
 
     if(totalW === 0) return { confluencePct: 50, direction: 'neutral', label: 'N/A' };
 
-    const bullPct = bullW / (bullW + bearW + 0.001) * 100;
+    // Confluence is scaled by how many TFs are actually directional
+    // If most TFs are neutral, confluence should be weak regardless
+    const directionalW = bullW + bearW;
+    const directionality = totalW > 0 ? directionalW / totalW : 0;
+
+    // bullPct/bearPct from directional TFs only
+    const bullPct = directionalW > 0 ? (bullW / directionalW) * 100 : 50;
     const bearPct = 100 - bullPct;
-    const confluencePct = Math.max(bullPct, bearPct);
+
+    // Scale confluence by directionality: many neutral TFs → lower confluence
+    // e.g. 1 bull + 1 bear + 4 neutral = weak confluence, not 50%
+    const rawConf = Math.max(bullPct, bearPct);
+    const confluencePct = Math.round(50 + (rawConf - 50) * directionality);
     const direction = bullPct > 55 ? 'bull' : bearPct > 55 ? 'bear' : 'neutral';
 
     let label;
@@ -5494,7 +5519,7 @@ function calcMTFConfluence(allIndicatorData, regime) {
     else if(confluencePct >= 55) label = 'Moderate Confluence';
     else label = 'Weak Confluence';
 
-    return { confluencePct: Math.round(confluencePct), direction, label };
+    return { confluencePct: Math.max(0, Math.min(100, confluencePct)), direction, label };
   } catch(_) {
     return { confluencePct: 50, direction: 'neutral', label: 'N/A' };
   }
