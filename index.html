@@ -847,6 +847,86 @@
     .sess-hero-countdown{flex-direction:column;gap:4px;}
     .sess-modal-clock{font-size:11px;padding:3px 8px;}
   }
+
+  /* ── TRADE JOURNAL ─────────────────────────────────────────── */
+  .tj-btn{position:fixed;bottom:136px;right:16px;z-index:1000;width:48px;height:48px;
+    border-radius:14px;border:1px solid rgba(61,142,255,.35);
+    background:rgba(8,11,20,.92);backdrop-filter:blur(12px);
+    color:var(--blue);font-size:22px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.5);transition:all .2s;padding:0;}
+  .tj-btn:hover{background:rgba(61,142,255,.12);border-color:rgba(61,142,255,.5);transform:scale(1.05);}
+  .tj-badge{position:absolute;top:-4px;right:-4px;background:var(--blue);color:#000;
+    font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;
+    align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg);}
+  .tj-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    background:rgba(3,4,10,.75);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s;}
+  .tj-overlay.open{opacity:1;pointer-events:all;}
+  .tj-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;
+    width:min(720px,96vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.7);}
+  .tj-modal-header{display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0;}
+  .tj-modal-title{font-size:16px;font-weight:700;}
+  .tj-modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;
+    padding:4px 8px;border-radius:6px;transition:color .2s;line-height:1;}
+  .tj-modal-close:hover{color:var(--text);}
+  .tj-tabs{display:flex;gap:6px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .tj-tab{padding:7px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
+    border:1px solid var(--border);background:none;color:var(--muted);transition:all .2s;font-family:'Sora',sans-serif;}
+  .tj-tab.active{background:rgba(61,142,255,.12);border-color:rgba(61,142,255,.35);color:var(--blue);}
+  .tj-modal-body{overflow-y:auto;padding:16px 20px;flex:1;}
+  .tj-trade-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+    padding:14px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;
+    gap:12px;align-items:start;}
+  .tj-dir-badge{padding:5px 10px;border-radius:8px;font-size:11px;font-weight:800;
+    letter-spacing:.8px;white-space:nowrap;text-align:center;}
+  .tj-dir-badge.long{background:rgba(5,229,122,.12);color:var(--green);border:1px solid rgba(5,229,122,.25);}
+  .tj-dir-badge.short{background:rgba(255,45,85,.12);color:var(--red);border:1px solid rgba(255,45,85,.25);}
+  .tj-trade-meta{font-size:10px;color:var(--muted);margin-bottom:6px;}
+  .tj-prices{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .tj-price-item{text-align:center;}
+  .tj-price-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .tj-price-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
+  .tj-price-val.entry-c{color:var(--blue);}
+  .tj-price-val.tp-c{color:var(--green);}
+  .tj-price-val.sl-c{color:var(--red);}
+  .tj-price-val.closed-c{color:var(--dim);}
+  .tj-conf{font-size:10px;color:var(--muted);margin-top:4px;}
+  .tj-status-badge{display:inline-block;padding:5px 10px;border-radius:8px;font-size:10px;font-weight:700;}
+  .tj-status-badge.pending{background:rgba(255,195,0,.1);color:var(--yellow);border:1px solid rgba(255,195,0,.25);}
+  .tj-status-badge.win-tp1{background:rgba(5,229,122,.1);color:var(--green);border:1px solid rgba(5,229,122,.3);}
+  .tj-status-badge.win-tp2{background:rgba(5,229,122,.2);color:#00ff88;border:1px solid rgba(5,229,122,.5);}
+  .tj-status-badge.loss{background:rgba(255,45,85,.1);color:var(--red);border:1px solid rgba(255,45,85,.25);}
+  .tj-analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .tj-analytics-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .tj-analytics-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:1.2px;margin-bottom:12px;}
+  .tj-stat-row{display:flex;justify-content:space-between;align-items:center;
+    padding:5px 0;border-bottom:1px solid var(--border);}
+  .tj-stat-row:last-child{border-bottom:none;}
+  .tj-stat-label{font-size:11px;color:var(--dim);}
+  .tj-stat-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
+  .tj-best-row{background:rgba(5,229,122,.06);border-radius:6px;padding:5px 8px!important;border-bottom:none!important;margin-bottom:2px;}
+  .tj-win-big{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:800;text-align:center;padding:8px 0 4px;}
+  .tj-summ-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+  .tj-summ-item{text-align:center;padding:8px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);}
+  .tj-summ-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;}
+  .tj-summ-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+  .tj-clear-btn{background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.25);color:var(--red);
+    padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Sora',sans-serif;}
+  .tj-clear-btn:hover{background:rgba(255,45,85,.2);}
+  .tj-tf-grid{display:flex;gap:8px;flex-wrap:wrap;}
+  .tj-tf-item{flex:1;min-width:70px;text-align:center;padding:10px 8px;background:var(--bg2);
+    border-radius:10px;border:1px solid var(--border);}
+  .tj-tf-item.best-tf-j{border-color:rgba(5,229,122,.4);background:rgba(5,229,122,.06);}
+  .tj-best-box{background:rgba(5,229,122,.07);border:1px solid rgba(5,229,122,.25);
+    border-radius:12px;padding:16px;margin-bottom:12px;}
+  @media(max-width:600px){
+    .tj-analytics-grid{grid-template-columns:1fr;}
+    .tj-trade-card{grid-template-columns:auto 1fr;gap:8px;}
+    .tj-trade-card > div:last-child{grid-column:1/-1;}
+  }
 </style>
 </head>
 <body>
@@ -7031,6 +7111,12 @@ async function runAnalysis() {
     // (No API calls — reads from dashboardCache populated above)
     try { hsRefreshFromCache(); } catch(_){}
 
+    // ── Trade Journal: auto-log signal + check open trades ────────
+    try {
+      autoLogTrade(results, bestTF, currentPrice, masterScore, currentAsset);
+      checkOpenTrades(currentPrice, currentAsset);
+    } catch(e3) { console.warn('[TradeJournal] hook error:', e3); }
+
   } catch(e) {
     console.error('runAnalysis error:', e);
     _clearAnalysisTimeout(); // Clear timeout on error too
@@ -7769,6 +7855,369 @@ document.addEventListener('visibilitychange', () => {
     if(!sessClockTimer) { sessTick(); sessClockTimer = setInterval(sessTick, 1000); }
   }
 });
+
+// ══════════════════════════════════════════════════════════════
+// TRADE JOURNAL — Auto-logging, Outcome Tracking, Analytics
+// ══════════════════════════════════════════════════════════════
+const TJ_KEY = 'btc_analyst_journal_v1';
+let _tjOpen = false;
+let _tjTab = 'trades';
+
+function _tjLoad() {
+  try { return JSON.parse(localStorage.getItem(TJ_KEY) || '[]'); } catch { return []; }
+}
+function _tjSave(trades) {
+  try { localStorage.setItem(TJ_KEY, JSON.stringify(trades)); } catch(e) { console.warn('[TJ] save failed', e); }
+}
+
+// ── Toggle panel ─────────────────────────────────────────────
+function tjToggle() {
+  _tjOpen = !_tjOpen;
+  const ov = $id('tjOverlay');
+  if(ov) ov.classList.toggle('open', _tjOpen);
+  if(_tjOpen) _tjRenderBody();
+}
+
+// ── Tab switch ───────────────────────────────────────────────
+function tjSetTab(tab) {
+  _tjTab = tab;
+  document.querySelectorAll('.tj-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  _tjRenderBody();
+}
+
+// ── Auto-log trade after analysis ────────────────────────────
+function autoLogTrade(results, bestTF, price, masterScoreVal, asset) {
+  try {
+    const r = results[bestTF];
+    if(!r || !r.tp1 || !r.sl || !r.tp2) return;
+    if(r.signal === 'neutral') return;
+    if(r.prob < 70) return; // Confidence threshold: 70%
+
+    const trades = _tjLoad();
+
+    // Duplicate guard: skip if same asset+TF pending trade within last 4 hours
+    const fourHrsAgo = Date.now() - 4 * 60 * 60 * 1000;
+    const dup = trades.some(t =>
+      t.asset === asset.displayName &&
+      t.timeframe === bestTF &&
+      t.status === 'pending' &&
+      new Date(t.timestamp).getTime() > fourHrsAgo
+    );
+    if(dup) return;
+
+    const now = new Date();
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    const trade = {
+      id: Date.now(),
+      asset: asset.displayName,
+      assetType: asset.type,
+      symbol: asset.symbol,
+      timeframe: bestTF,
+      direction: r.signal === 'bull' ? 'LONG' : 'SHORT',
+      entry: +price,
+      tp1: +r.tp1,
+      tp2: +r.tp2,
+      sl: +r.sl,
+      confidence: r.prob,
+      masterScore: masterScoreVal,
+      timestamp: now.toISOString(),
+      date: now.toISOString().split('T')[0],
+      dayName: dayNames[now.getDay()],
+      dayIndex: now.getDay(),
+      hour: now.getHours(),
+      status: 'pending', // pending | win_tp1 | win_tp2 | loss
+      closedAt: null,
+      closedPrice: null,
+    };
+
+    trades.unshift(trade);
+    if(trades.length > 500) trades.splice(500); // Keep max 500
+    _tjSave(trades);
+    _tjUpdateBadge();
+    if(_tjOpen) _tjRenderBody();
+    console.log(`[TJ] Logged: ${trade.asset} ${trade.direction} @ ${trade.entry} | Conf: ${trade.confidence}%`);
+  } catch(e) { console.warn('[TJ] autoLogTrade error:', e); }
+}
+
+// ── Check open trades against current price ──────────────────
+function checkOpenTrades(currentPriceVal, asset) {
+  try {
+    const trades = _tjLoad();
+    let changed = false;
+    const now = new Date().toISOString();
+
+    trades.forEach(t => {
+      if(t.status !== 'pending') return;
+      if(t.asset !== asset.displayName) return;
+
+      if(t.direction === 'LONG') {
+        if(currentPriceVal >= +t.tp2)      { t.status='win_tp2'; t.closedAt=now; t.closedPrice=currentPriceVal; changed=true; }
+        else if(currentPriceVal >= +t.tp1) { t.status='win_tp1'; t.closedAt=now; t.closedPrice=currentPriceVal; changed=true; }
+        else if(currentPriceVal <= +t.sl)  { t.status='loss';    t.closedAt=now; t.closedPrice=currentPriceVal; changed=true; }
+      } else { // SHORT
+        if(currentPriceVal <= +t.tp2)      { t.status='win_tp2'; t.closedAt=now; t.closedPrice=currentPriceVal; changed=true; }
+        else if(currentPriceVal <= +t.tp1) { t.status='win_tp1'; t.closedAt=now; t.closedPrice=currentPriceVal; changed=true; }
+        else if(currentPriceVal >= +t.sl)  { t.status='loss';    t.closedAt=now; t.closedPrice=currentPriceVal; changed=true; }
+      }
+    });
+
+    if(changed) {
+      _tjSave(trades);
+      _tjUpdateBadge();
+      if(_tjOpen) _tjRenderBody();
+    }
+  } catch(e) { console.warn('[TJ] checkOpenTrades error:', e); }
+}
+
+// ── Badge update ─────────────────────────────────────────────
+function _tjUpdateBadge() {
+  const pending = _tjLoad().filter(t => t.status === 'pending').length;
+  const b = $id('tjBadge');
+  if(!b) return;
+  b.textContent = pending || '';
+  b.style.display = pending ? 'flex' : 'none';
+}
+
+// ── Price formatting ─────────────────────────────────────────
+function _tjFmt(p) {
+  if(p == null || isNaN(+p)) return '—';
+  const v = +p;
+  if(v >= 1000) return v.toLocaleString(undefined, {maximumFractionDigits:0});
+  if(v >= 1)    return v.toFixed(4);
+  return v.toFixed(6);
+}
+
+// ── Render dispatcher ─────────────────────────────────────────
+function _tjRenderBody() {
+  const body = $id('tjBody');
+  if(!body) return;
+  body.innerHTML = _tjTab === 'trades' ? _tjRenderTrades() : _tjRenderAnalytics();
+}
+
+// ── Render trade list ─────────────────────────────────────────
+function _tjRenderTrades() {
+  const trades = _tjLoad();
+  if(!trades.length) return `
+    <div style="text-align:center;padding:50px 20px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:12px">📋</div>
+      <div style="font-weight:600;color:var(--text);margin-bottom:6px">এখনো কোনো trade log হয়নি</div>
+      <div style="font-size:12px">Confidence ≥ 70% হলে analysis এর পর<br>automatically save হবে।</div>
+    </div>`;
+
+  const SL = { pending:'⏳ Pending', win_tp1:'✅ TP1 Hit', win_tp2:'✅✅ TP2 Hit', loss:'❌ SL Hit' };
+  const SC = { pending:'pending', win_tp1:'win-tp1', win_tp2:'win-tp2', loss:'loss' };
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px">
+      <span style="font-size:11px;color:var(--muted)">${trades.length} trade logged · ${trades.filter(t=>t.status==='pending').length} pending</span>
+      <button class="tj-clear-btn" onclick="tjClearAll()">🗑 Clear All</button>
+    </div>
+    ${trades.map(t => {
+      const time = new Date(t.timestamp).toLocaleTimeString('en-BD',{hour:'2-digit',minute:'2-digit'});
+      const closedTime = t.closedAt ? new Date(t.closedAt).toLocaleTimeString('en-BD',{hour:'2-digit',minute:'2-digit'}) : null;
+      return `
+      <div class="tj-trade-card">
+        <div>
+          <div class="tj-dir-badge ${t.direction.toLowerCase()}">${t.direction}</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;font-family:'JetBrains Mono',monospace">${t.timeframe}</div>
+        </div>
+        <div>
+          <div class="tj-trade-meta">
+            <strong style="color:var(--text)">${t.asset}</strong>
+            &nbsp;·&nbsp;${t.date} ${time}
+            &nbsp;·&nbsp;${t.dayName}
+            &nbsp;·&nbsp;<span style="color:${t.confidence>=80?'var(--green)':t.confidence>=70?'var(--yellow)':'var(--muted)'}">Conf ${t.confidence}%</span>
+          </div>
+          <div class="tj-prices">
+            <div class="tj-price-item">
+              <div class="tj-price-lbl">Entry</div>
+              <div class="tj-price-val entry-c">${_tjFmt(t.entry)}</div>
+            </div>
+            <div class="tj-price-item">
+              <div class="tj-price-lbl">TP1</div>
+              <div class="tj-price-val tp-c">${_tjFmt(t.tp1)}</div>
+            </div>
+            <div class="tj-price-item">
+              <div class="tj-price-lbl">TP2</div>
+              <div class="tj-price-val tp-c">${_tjFmt(t.tp2)}</div>
+            </div>
+            <div class="tj-price-item">
+              <div class="tj-price-lbl">SL</div>
+              <div class="tj-price-val sl-c">${_tjFmt(t.sl)}</div>
+            </div>
+            ${t.closedPrice ? `<div class="tj-price-item">
+              <div class="tj-price-lbl">Closed</div>
+              <div class="tj-price-val closed-c">${_tjFmt(t.closedPrice)}</div>
+            </div>` : ''}
+          </div>
+          <div class="tj-conf">Score: ${t.masterScore}/100</div>
+        </div>
+        <div style="text-align:right;white-space:nowrap">
+          <span class="tj-status-badge ${SC[t.status]}">${SL[t.status]}</span>
+          ${closedTime ? `<div style="font-size:9px;color:var(--muted);margin-top:4px">${closedTime}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── Render analytics ─────────────────────────────────────────
+function _tjRenderAnalytics() {
+  const trades = _tjLoad();
+  const closed = trades.filter(t => t.status !== 'pending');
+  const wins = closed.filter(t => t.status === 'win_tp1' || t.status === 'win_tp2').length;
+  const losses = closed.filter(t => t.status === 'loss').length;
+  const pending = trades.filter(t => t.status === 'pending').length;
+  const winRate = closed.length > 0 ? Math.round(wins / closed.length * 100) : 0;
+  const wrColor = winRate >= 60 ? 'var(--green)' : winRate >= 45 ? 'var(--yellow)' : 'var(--red)';
+
+  if(trades.length < 5) {
+    const pct = Math.min(100, Math.round(trades.length / 5 * 100));
+    return `
+      <div style="text-align:center;padding:40px 20px">
+        <div style="font-size:36px;margin-bottom:12px">📊</div>
+        <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:8px">Analytics unlock হবে</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Minimum 5টা trade log হলে performance দেখাবে।<br>১ সপ্তাহের data জমলে Best Day/Time unlock হবে।</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:300px;margin:0 auto">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Progress</div>
+          <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;margin-bottom:6px">
+            <div style="height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));width:${pct}%;border-radius:4px;transition:width .5s"></div>
+          </div>
+          <div style="font-size:11px;color:var(--dim)">${trades.length} / 5 trades</div>
+        </div>
+      </div>`;
+  }
+
+  // Check 1-week data
+  const oldest = new Date(trades[trades.length-1].timestamp);
+  const daysSince = (Date.now() - oldest.getTime()) / 86400000;
+  const hasWeek = daysSince >= 7;
+
+  // Day stats
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayStats = {};
+  dayNames.forEach(d => { dayStats[d] = {wins:0, total:0, short:d.slice(0,3)}; });
+  closed.forEach(t => {
+    if(!dayStats[t.dayName]) return;
+    dayStats[t.dayName].total++;
+    if(t.status === 'win_tp1' || t.status === 'win_tp2') dayStats[t.dayName].wins++;
+  });
+
+  // Hour block stats (4h blocks)
+  const blocks = [['00-04',0,4],['04-08',4,8],['08-12',8,12],['12-16',12,16],['16-20',16,20],['20-24',20,24]];
+  const hourStats = {};
+  blocks.forEach(([k]) => { hourStats[k] = {wins:0, total:0}; });
+  closed.forEach(t => {
+    const b = blocks.find(([,lo,hi]) => t.hour >= lo && t.hour < hi);
+    if(b) { hourStats[b[0]].total++; if(t.status==='win_tp1'||t.status==='win_tp2') hourStats[b[0]].wins++; }
+  });
+
+  // TF stats
+  const tfStats = {};
+  closed.forEach(t => {
+    if(!tfStats[t.timeframe]) tfStats[t.timeframe] = {wins:0, total:0};
+    tfStats[t.timeframe].total++;
+    if(t.status==='win_tp1'||t.status==='win_tp2') tfStats[t.timeframe].wins++;
+  });
+
+  const wr = (s) => s.total > 0 ? Math.round(s.wins/s.total*100) : null;
+  const wrC = (v) => v==null?'var(--muted)':v>=60?'var(--green)':v>=40?'var(--yellow)':'var(--red)';
+
+  // Best entries
+  const bestDay = Object.entries(dayStats).filter(([,s])=>s.total>=2).sort(([,a],[,b])=>wr(b)-wr(a))[0];
+  const bestHour = Object.entries(hourStats).filter(([,s])=>s.total>=1).sort(([,a],[,b])=>wr(b)-wr(a))[0];
+  const bestTFJ = Object.entries(tfStats).filter(([,s])=>s.total>=1).sort(([,a],[,b])=>wr(b)-wr(a))[0];
+
+  return `
+    <!-- Overall Win Rate -->
+    <div class="tj-analytics-card" style="margin-bottom:12px;text-align:center">
+      <div class="tj-analytics-title" style="text-align:left">📈 Overall Performance</div>
+      <div class="tj-win-big" style="color:${wrColor}">${winRate}%</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Win Rate · ${closed.length} closed trades</div>
+      <div class="tj-summ-row">
+        <div class="tj-summ-item"><div class="tj-summ-val" style="color:var(--green)">${wins}</div><div class="tj-summ-lbl">Wins</div></div>
+        <div class="tj-summ-item"><div class="tj-summ-val" style="color:var(--red)">${losses}</div><div class="tj-summ-lbl">Losses</div></div>
+        <div class="tj-summ-item"><div class="tj-summ-val" style="color:var(--yellow)">${pending}</div><div class="tj-summ-lbl">Pending</div></div>
+        <div class="tj-summ-item"><div class="tj-summ-val" style="color:var(--blue)">${trades.length}</div><div class="tj-summ-lbl">Total</div></div>
+      </div>
+    </div>
+
+    ${!hasWeek ? `<div style="background:rgba(255,195,0,.07);border:1px solid rgba(255,195,0,.2);border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:11px;color:var(--yellow)">
+      ⏳ Best Day / Best Time analytics unlock হবে আরো ${Math.ceil(7-daysSince)} দিন পরে (১ সপ্তাহ data দরকার)।
+    </div>` : ''}
+
+    <div class="tj-analytics-grid">
+      <!-- Day performance -->
+      <div class="tj-analytics-card">
+        <div class="tj-analytics-title">📅 Day Performance</div>
+        ${hasWeek ? dayNames.map(d => {
+          const s = dayStats[d]; const w = wr(s); const isBest = bestDay && bestDay[0]===d;
+          return `<div class="tj-stat-row ${isBest?'tj-best-row':''}">
+            <span class="tj-stat-label">${isBest?'⭐ ':''}<strong style="${isBest?'color:var(--green)':''}">${s.short}</strong></span>
+            <span class="tj-stat-val" style="color:${wrC(w)}">${w!=null?w+'%':'—'} ${s.total?'('+s.total+')':''}</span>
+          </div>`;
+        }).join('') : '<div style="color:var(--muted);font-size:11px;text-align:center;padding:24px 0">১ সপ্তাহ পরে unlock হবে</div>'}
+      </div>
+
+      <!-- Hour block performance -->
+      <div class="tj-analytics-card">
+        <div class="tj-analytics-title">🕐 Time Block (UTC)</div>
+        ${hasWeek ? blocks.map(([k]) => {
+          const s = hourStats[k]; const w = wr(s); const isBest = bestHour && bestHour[0]===k;
+          return `<div class="tj-stat-row ${isBest?'tj-best-row':''}">
+            <span class="tj-stat-label">${isBest?'⭐ ':''}<span style="font-family:'JetBrains Mono',monospace;${isBest?'color:var(--green)':''}">${k}</span></span>
+            <span class="tj-stat-val" style="color:${wrC(w)}">${w!=null?w+'%':'—'} ${s.total?'('+s.total+')':''}</span>
+          </div>`;
+        }).join('') : '<div style="color:var(--muted);font-size:11px;text-align:center;padding:24px 0">১ সপ্তাহ পরে unlock হবে</div>'}
+      </div>
+    </div>
+
+    <!-- TF Performance -->
+    <div class="tj-analytics-card" style="margin-bottom:12px">
+      <div class="tj-analytics-title">⏱ Timeframe Performance</div>
+      <div class="tj-tf-grid">
+        ${Object.entries(tfStats).sort(([,a],[,b])=>b.total-a.total).map(([tf,s]) => {
+          const w = wr(s)||0; const isBest = bestTFJ && bestTFJ[0]===tf;
+          return `<div class="tj-tf-item ${isBest?'best-tf-j':''}">
+            ${isBest?'<div style="font-size:9px;color:var(--green);font-weight:700;margin-bottom:3px">⭐ BEST</div>':''}
+            <div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:var(--cyan)">${tf}</div>
+            <div style="font-size:20px;font-weight:800;color:${wrC(w)};margin:4px 0">${w}%</div>
+            <div style="font-size:9px;color:var(--muted)">${s.wins}W · ${s.total-s.wins}L</div>
+          </div>`;
+        }).join('') || '<div style="color:var(--muted);font-size:11px">No closed trades yet</div>'}
+      </div>
+    </div>
+
+    ${hasWeek && (bestDay || bestHour || bestTFJ) ? `
+    <div class="tj-best-box">
+      <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px">🏆 তোমার Best Trade Setup (Data-based)</div>
+      ${bestDay ? `<div style="font-size:12px;margin-bottom:6px;color:var(--text)">📅 Best Day: <strong>${bestDay[0]}</strong> — ${wr(dayStats[bestDay[0]])}% win rate (${dayStats[bestDay[0]].total} trades)</div>` : ''}
+      ${bestHour ? `<div style="font-size:12px;margin-bottom:6px;color:var(--text)">🕐 Best Time: <strong>${bestHour[0]} UTC</strong> — ${wr(hourStats[bestHour[0]])}% win rate</div>` : ''}
+      ${bestTFJ ? `<div style="font-size:12px;color:var(--text)">⏱ Best Timeframe: <strong>${bestTFJ[0]}</strong> — ${wr(tfStats[bestTFJ[0]])}% win rate</div>` : ''}
+      <div style="font-size:10px;color:var(--muted);margin-top:10px">যত বেশি data জমবে — recommendation তত accurate হবে।</div>
+    </div>` : ''}
+
+    <div style="text-align:center;margin-top:8px">
+      <button class="tj-clear-btn" onclick="tjClearAll()">🗑 All Data Clear করো</button>
+    </div>`;
+}
+
+// ── Clear all trades ──────────────────────────────────────────
+function tjClearAll() {
+  if(confirm('সব trade data delete করবে? এটা undo করা যাবে না।')) {
+    localStorage.removeItem(TJ_KEY);
+    _tjUpdateBadge();
+    _tjRenderBody();
+  }
+}
+
+// ── Close journal on backdrop click ──────────────────────────
+$id('tjOverlay')?.addEventListener('click', e => {
+  if(e.target.id === 'tjOverlay') { _tjOpen = false; e.target.classList.remove('open'); }
+});
+
+// ── Init badge on load ────────────────────────────────────────
+_tjUpdateBadge();
 </script>
 
 <!-- HOT SESSIONS — BUTTON + CENTERED MODAL -->
@@ -7798,6 +8247,23 @@ document.addEventListener('visibilitychange', () => {
   </div>
   <!-- hs-scanning element removed — Hot Signal now reads from dashboard cache, no separate scan -->
   <div class="hs-panel-body" id="hsBody"></div>
+</div>
+<!-- TRADE JOURNAL — FLOATING BUTTON + MODAL -->
+<button class="tj-btn" id="tjBtn" onclick="tjToggle()" title="Trade Journal 📒">
+  📒<span class="tj-badge" id="tjBadge" style="display:none"></span>
+</button>
+<div class="tj-overlay" id="tjOverlay">
+  <div class="tj-modal">
+    <div class="tj-modal-header">
+      <div class="tj-modal-title">📒 Trade Journal</div>
+      <button class="tj-modal-close" onclick="tjToggle()">✕</button>
+    </div>
+    <div class="tj-tabs">
+      <button class="tj-tab active" data-tab="trades" onclick="tjSetTab('trades')">📋 Trades</button>
+      <button class="tj-tab" data-tab="analytics" onclick="tjSetTab('analytics')">📊 Analytics</button>
+    </div>
+    <div class="tj-modal-body" id="tjBody"></div>
+  </div>
 </div>
 
 </body>
