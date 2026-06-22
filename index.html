@@ -1172,8 +1172,10 @@ const ASSETS = {
 // Each key is tracked independently; auto-ban on 429, auto-unban after 65s cooldown
 // DAILY BAN: Keys that exhaust daily credits are banned until next UTC midnight
 const TD_API_KEYS = [
-  // Keys moved to Vercel environment variables (TD_KEY_1 … TD_KEY_10)
-  // Proxied via /api/td — not needed in frontend
+  // Placeholder keys — real keys are in Vercel env vars, proxied via /api/td
+  // These values are used ONLY for client-side rate-limit tracking (never sent to TwelveData)
+  'slot_1','slot_2','slot_3','slot_4','slot_5',
+  'slot_6','slot_7','slot_8','slot_9','slot_10',
 ];
 
 // Track per-key rate limits and ban status
