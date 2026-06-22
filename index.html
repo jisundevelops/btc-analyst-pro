@@ -7115,6 +7115,7 @@ async function runAnalysis() {
     try {
       autoLogTrade(results, bestTF, currentPrice, masterScore, currentAsset);
       checkOpenTrades(currentPrice, currentAsset);
+      _tjCheckHistorical().catch(()=>{}); // check candle history for closed-browser period
     } catch(e3) { console.warn('[TradeJournal] hook error:', e3); }
 
   } catch(e) {
@@ -8051,7 +8052,7 @@ function _tjRenderTrades() {
               <div class="tj-price-val closed-c">${_tjFmt(t.closedPrice)}</div>
             </div>` : ''}
           </div>
-          <div class="tj-conf">Score: ${t.masterScore}/100</div>
+          <div class="tj-conf">Score: ${t.masterScore}/100${t.resolvedByHistory?' · <span style="color:var(--cyan);font-size:9px">📡 history verified</span>':''}</div>
         </div>
         <div style="text-align:right;white-space:nowrap">
           <span class="tj-status-badge ${SC[t.status]}">${SL[t.status]}</span>
@@ -8202,6 +8203,95 @@ function _tjRenderAnalytics() {
     </div>`;
 }
 
+// ── Historical candle check (when browser was closed) ─────────
+async function _tjCheckHistorical() {
+  const trades = _tjLoad();
+  const cutoff = Date.now() - 2 * 60 * 1000; // trades older than 2 min
+  const toCheck = trades.filter(t =>
+    t.status === 'pending' &&
+    new Date(t.timestamp).getTime() < cutoff &&
+    (!t.lastHistoricalCheck || Date.now() - t.lastHistoricalCheck > 5 * 60 * 1000)
+  );
+  if(!toCheck.length) return;
+
+  let changed = false;
+
+  for(const trade of toCheck) {
+    try {
+      const startMs = new Date(trade.timestamp).getTime();
+      const endMs   = Date.now();
+      const ageMs   = endMs - startMs;
+
+      const candles = await _tjFetchHistoricalCandles(trade, startMs, endMs, ageMs);
+      if(!candles || !candles.length) continue;
+
+      let outcome = null, outcomeTime = null, outcomePrice = null;
+
+      for(const c of candles) {
+        const openTime = c[0], high = +c[2], low = +c[3];
+        if(trade.direction === 'LONG') {
+          if(low  <= +trade.sl)  { outcome='loss';    outcomeTime=openTime; outcomePrice=+trade.sl;  break; }
+          if(high >= +trade.tp2) { outcome='win_tp2'; outcomeTime=openTime; outcomePrice=+trade.tp2; break; }
+          if(high >= +trade.tp1) { outcome='win_tp1'; outcomeTime=openTime; outcomePrice=+trade.tp1; break; }
+        } else {
+          if(high >= +trade.sl)  { outcome='loss';    outcomeTime=openTime; outcomePrice=+trade.sl;  break; }
+          if(low  <= +trade.tp2) { outcome='win_tp2'; outcomeTime=openTime; outcomePrice=+trade.tp2; break; }
+          if(low  <= +trade.tp1) { outcome='win_tp1'; outcomeTime=openTime; outcomePrice=+trade.tp1; break; }
+        }
+      }
+
+      const t = trades.find(tr => tr.id === trade.id);
+      if(!t) continue;
+      if(outcome) {
+        t.status          = outcome;
+        t.closedAt        = new Date(outcomeTime).toISOString();
+        t.closedPrice     = outcomePrice;
+        t.resolvedByHistory = true;
+      } else {
+        t.lastHistoricalCheck = Date.now(); // checked but still open
+      }
+      changed = true;
+    } catch(e) { console.warn('[TJ] Historical check error:', trade.id, e); }
+  }
+
+  if(changed) { _tjSave(trades); _tjUpdateBadge(); if(_tjOpen) _tjRenderBody(); }
+}
+
+async function _tjFetchHistoricalCandles(trade, startMs, endMs, ageMs) {
+  // Pick interval based on trade age to minimise API calls
+  let binInterval, tdInterval;
+  if     (ageMs < 2  * 3600000)  { binInterval='1m';  tdInterval='1min';  }
+  else if(ageMs < 12 * 3600000)  { binInterval='5m';  tdInterval='5min';  }
+  else if(ageMs < 7  * 86400000) { binInterval='15m'; tdInterval='15min'; }
+  else                            { binInterval='1h';  tdInterval='1h';    }
+
+  if(trade.assetType === 'crypto') {
+    const sym = (trade.symbol || '').replace('/','');
+    for(const base of ['https://api.binance.com','https://api.binance.us']) {
+      try {
+        const url = `${base}/api/v3/klines?symbol=${sym}&interval=${binInterval}&startTime=${startMs}&endTime=${endMs}&limit=1000`;
+        const d = await tryFetch(url, 10000, 1);
+        if(Array.isArray(d) && d.length) return d;
+      } catch(_) {}
+    }
+  } else {
+    // Forex / Gold — Twelve Data
+    try {
+      const key = getTDKey ? getTDKey() : TD_KEYS[0];
+      const fmt = ms => new Date(ms).toISOString().replace('T',' ').slice(0,19);
+      const url  = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(trade.symbol)}&interval=${tdInterval}&start_date=${encodeURIComponent(fmt(startMs))}&outputsize=500&apikey=${key}`;
+      const data = await tryFetch(url, 10000, 1);
+      if(data && data.values && data.values.length) {
+        return data.values.slice().reverse().map(v => [
+          new Date(v.datetime.replace(' ','T')+'Z').getTime(),
+          +v.open, +v.high, +v.low, +v.close, 0
+        ]);
+      }
+    } catch(_) {}
+  }
+  return null;
+}
+
 // ── Clear all trades ──────────────────────────────────────────
 function tjClearAll() {
   if(confirm('সব trade data delete করবে? এটা undo করা যাবে না।')) {
@@ -8216,8 +8306,9 @@ $id('tjOverlay')?.addEventListener('click', e => {
   if(e.target.id === 'tjOverlay') { _tjOpen = false; e.target.classList.remove('open'); }
 });
 
-// ── Init badge on load ────────────────────────────────────────
+// ── Init badge + historical check on page load ────────────────
 _tjUpdateBadge();
+setTimeout(() => { _tjCheckHistorical().catch(()=>{}); }, 5000);
 </script>
 
 <!-- HOT SESSIONS — BUTTON + CENTERED MODAL -->
